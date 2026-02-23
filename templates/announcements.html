@@ -1,0 +1,244 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Announcements — Campus Connect</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --green: #00e676; --pink: #ff4d9e; --dark: #0a0a0a; }
+        body { font-family: 'DM Sans', sans-serif; background: var(--dark); color: #fff; min-height: 100vh; }
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 14px 40px; background: #0d0d0d; border-bottom: 1px solid #1e1e1e; position: sticky; top: 0; z-index: 100; }
+        .nav-logo img { width: 85px; }
+        .nav-right { display: flex; align-items: center; gap: 10px; }
+        .nav-btn { text-decoration: none; font-family: 'Syne', sans-serif; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.08em; padding: 9px 20px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.6); transition: all 0.2s; }
+        .nav-btn:hover { color: #fff; border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.05); }
+        .nav-btn.study { border-color: rgba(0,230,118,0.3); color: var(--green); }
+        .nav-btn.study:hover { background: rgba(0,230,118,0.08); }
+        .nav-btn.logout { border-color: rgba(255,77,77,0.2); color: rgba(255,100,100,0.6); }
+        .nav-btn.logout:hover { border-color: rgba(255,77,77,0.5); color: #ff6b6b; }
+        .page-header { padding: 36px 40px 24px; border-bottom: 1px solid #1a1a1a; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+        .page-header h1 { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; }
+        .page-header h1 span { color: var(--green); }
+        .header-right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .stats { display: flex; gap: 20px; }
+        .stat-item { text-align: center; }
+        .stat-num { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800; color: var(--green); }
+        .stat-label { font-size: 0.7rem; color: rgba(255,255,255,0.3); }
+        .btn-post { background: var(--green); color: #000; font-family: 'Syne', sans-serif; font-size: 0.82rem; font-weight: 700; padding: 10px 22px; border-radius: 50px; text-decoration: none; transition: transform 0.2s; white-space: nowrap; }
+        .btn-post:hover { transform: translateY(-2px); }
+        .filter-bar { padding: 16px 40px; background: #0d0d0d; border-bottom: 1px solid #1a1a1a; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .search-wrap { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 50px; padding: 8px 16px; flex: 1; min-width: 200px; }
+        .search-wrap input { background: none; border: none; color: #fff; outline: none; font-family: 'DM Sans', sans-serif; font-size: 0.87rem; width: 100%; }
+        .search-wrap input::placeholder { color: rgba(255,255,255,0.22); }
+        select.fsel { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 50px; padding: 8px 16px; color: rgba(255,255,255,0.55); font-family: 'DM Sans', sans-serif; font-size: 0.82rem; outline: none; cursor: pointer; transition: border-color 0.2s; }
+        select.fsel:focus { border-color: var(--green); }
+        select.fsel option { background: #1a1a1a; }
+        .btn-apply { background: var(--green); color: #000; font-family: 'Syne', sans-serif; font-size: 0.78rem; font-weight: 700; border: none; border-radius: 50px; padding: 8px 18px; cursor: pointer; }
+        .btn-apply:hover { background: #00ff88; }
+        .btn-clear { color: rgba(255,255,255,0.28); font-size: 0.78rem; text-decoration: none; padding: 8px 14px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.08); transition: all 0.2s; }
+        .btn-clear:hover { color: #fff; }
+        .content { max-width: 860px; margin: 0 auto; padding: 32px 40px; }
+        .sec-label { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.22); margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+        .sec-label::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.06); }
+        .ann-card { background: #111; border: 1px solid #1e1e1e; border-radius: 16px; margin-bottom: 18px; overflow: hidden; transition: border-color 0.25s, transform 0.2s; animation: fadeUp 0.4s ease both; }
+        .ann-card:hover { border-color: #2a2a2a; transform: translateY(-2px); }
+        .ann-card.pinned { border-color: rgba(0,230,118,0.2); }
+        .ann-card.urgent { border-color: rgba(255,77,77,0.25); }
+        .ann-card.important { border-color: rgba(255,193,7,0.22); }
+        .ann-img { width: 100%; max-height: 280px; object-fit: cover; border-bottom: 1px solid #1e1e1e; display: block; }
+        .ann-body { padding: 22px 26px; }
+        .ann-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+        .badge { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 9px; border-radius: 50px; }
+        .b-pinned { background: rgba(0,230,118,0.12); color: var(--green); }
+        .b-urgent { background: rgba(255,77,77,0.12); color: #ff6b6b; }
+        .b-important { background: rgba(255,193,7,0.12); color: #ffc107; }
+        .b-normal { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.35); }
+        .b-target { background: rgba(100,120,255,0.1); color: #8899ff; }
+        .ann-author-wrap { margin-left: auto; display: flex; align-items: center; gap: 7px; }
+        .author-av { width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, var(--pink), #ff8a65); display: flex; align-items: center; justify-content: center; font-size: 0.62rem; font-weight: 700; color: #fff; flex-shrink: 0; }
+        .author-name { font-size: 0.8rem; color: rgba(255,255,255,0.45); }
+        .ann-time { font-size: 0.72rem; color: rgba(255,255,255,0.22); }
+        .ann-title { font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 700; margin-bottom: 10px; line-height: 1.35; }
+        .ann-text { color: rgba(255,255,255,0.58); font-size: 0.92rem; line-height: 1.8; white-space: pre-line; }
+        .ann-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 11px 26px; border-top: 1px solid #181818; }
+        .btn-edit { font-size: 0.74rem; color: rgba(0,230,118,0.5); background: none; border: 1px solid rgba(0,230,118,0.15); border-radius: 8px; padding: 5px 13px; cursor: pointer; text-decoration: none; transition: all 0.2s; }
+        .btn-edit:hover { color: var(--green); border-color: var(--green); }
+        .btn-delete { font-size: 0.74rem; color: rgba(255,77,77,0.45); background: none; border: 1px solid rgba(255,77,77,0.1); border-radius: 8px; padding: 5px 13px; cursor: pointer; text-decoration: none; transition: all 0.2s; }
+        .btn-delete:hover { color: #ff6b6b; border-color: rgba(255,77,77,0.4); }
+        .empty-state { text-align: center; padding: 70px 20px; color: rgba(255,255,255,0.18); }
+        .empty-state .icon { font-size: 2.8rem; margin-bottom: 12px; }
+        .msg-box { background: rgba(0,230,118,0.07); border: 1px solid rgba(0,230,118,0.18); border-radius: 10px; padding: 11px 16px; margin-bottom: 20px; font-size: 0.87rem; color: var(--green); }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        @media (max-width: 700px) { nav, .page-header, .filter-bar, .content { padding-left: 18px; padding-right: 18px; } .ann-body, .ann-footer { padding-left: 18px; padding-right: 18px; } }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="nav-logo">
+            <a href="{% url 'home' %}"><img src="{% static 'images/logo.png' %}" alt="Campus Connect" /></a>
+        </div>
+        <div class="nav-right">
+            <a href="{% url 'study' %}" class="nav-btn study">📚 Study</a>
+            <a href="{% url 'logout' %}" class="nav-btn logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <h1>📢 <span>Announcements</span></h1>
+        <div class="header-right">
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-num">{{ total }}</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-num">{{ pinned.count }}</div>
+                    <div class="stat-label">Pinned</div>
+                </div>
+            </div>
+            {% if is_faculty %}
+            <a href="{% url 'post_announcement' %}" class="btn-post">+ Post Announcement</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <form method="GET" action="{% url 'announcements' %}">
+        <div class="filter-bar">
+            <div class="search-wrap">
+                <span>🔍</span>
+                <input type="text" name="search" placeholder="Search announcements..." value="{{ search }}" />
+            </div>
+
+            <select name="year" class="fsel">
+                <option value="1" {% if f_year == '1' %}selected{% endif %}>1st Year</option>
+                <option value="2" {% if f_year == '2' %}selected{% endif %}>2nd Year</option>
+                <option value="3" {% if f_year == '3' %}selected{% endif %}>3rd Year</option>
+                <option value="4" {% if f_year == '4' %}selected{% endif %}>4th Year</option>
+            </select>
+
+            <select name="stream" class="fsel">
+                <option value="">All Streams</option>
+                <option value="computing" {% if f_stream == 'computing' %}selected{% endif %}>Computing</option>
+                <option value="non-computing" {% if f_stream == 'non-computing' %}selected{% endif %}>Non-Computing</option>
+            </select>
+
+            <select name="branch" class="fsel">
+                <option value="">All Branches</option>
+                <optgroup label="── Computing">
+                    <option value="aiml" {% if f_branch == 'aiml' %}selected{% endif %}>AI &amp; ML</option>
+                    <option value="cse" {% if f_branch == 'cse' %}selected{% endif %}>CSE</option>
+                    <option value="csd" {% if f_branch == 'csd' %}selected{% endif %}>CSD</option>
+                    <option value="cst" {% if f_branch == 'cst' %}selected{% endif %}>CST</option>
+                    <option value="it" {% if f_branch == 'it' %}selected{% endif %}>IT</option>
+                </optgroup>
+                <optgroup label="── Non-Computing">
+                    <option value="ece" {% if f_branch == 'ece' %}selected{% endif %}>ECE</option>
+                    <option value="eee" {% if f_branch == 'eee' %}selected{% endif %}>EEE</option>
+                    <option value="ce" {% if f_branch == 'ce' %}selected{% endif %}>Civil Engg</option>
+                    <option value="me" {% if f_branch == 'me' %}selected{% endif %}>Mechanical</option>
+                </optgroup>
+            </select>
+
+            <select name="priority" class="fsel">
+                <option value="">All Priority</option>
+                <option value="urgent" {% if f_prio == 'urgent' %}selected{% endif %}>🔴 Urgent</option>
+                <option value="important" {% if f_prio == 'important' %}selected{% endif %}>⚠️ Important</option>
+                <option value="normal" {% if f_prio == 'normal' %}selected{% endif %}>📣 Normal</option>
+            </select>
+
+            <button type="submit" class="btn-apply">Apply</button>
+            <a href="{% url 'announcements' %}" class="btn-clear">✕ Clear</a>
+        </div>
+    </form>
+
+    <div class="content">
+
+        {% if messages %}
+        {% for message in messages %}
+        <div class="msg-box">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+
+        {% if pinned %}
+        <p class="sec-label">📌 Pinned</p>
+        {% for ann in pinned %}
+        <div class="ann-card pinned {% if ann.priority == 'urgent' %}urgent{% elif ann.priority == 'important' %}important{% endif %}">
+            {% if ann.image %}<img class="ann-img" src="{{ ann.image.url }}" alt="" />{% endif %}
+            <div class="ann-body">
+                <div class="ann-meta">
+                    <span class="badge b-pinned">📌 Pinned</span>
+                    {% if ann.priority == 'urgent' %}<span class="badge b-urgent">🔴 Urgent</span>
+                    {% elif ann.priority == 'important' %}<span class="badge b-important">⚠️ Important</span>{% endif %}
+                    {% if ann.target_year != 'all' %}<span class="badge b-target">Yr {{ ann.target_year }}</span>{% endif %}
+                    {% if ann.target_branch != 'all' %}<span class="badge b-target">{{ ann.target_branch|upper }}</span>{% endif %}
+                    <div class="ann-author-wrap">
+                        <div class="author-av">
+                            {% if ann.author.first_name %}{{ ann.author.first_name.0|upper }}{% else %}{{ ann.author.username.0|upper }}{% endif %}
+                        </div>
+                        <span class="author-name">
+                            {% if ann.author.get_full_name %}{{ ann.author.get_full_name }}{% else %}{{ ann.author.username }}{% endif %}
+                        </span>
+                    </div>
+                    <span class="ann-time">{{ ann.created_at|date:"M d, Y" }}</span>
+                </div>
+                <h2 class="ann-title">{{ ann.title }}</h2>
+                <p class="ann-text">{{ ann.body }}</p>
+            </div>
+            {% if user == ann.author or user.is_staff %}
+            <div class="ann-footer">
+                <a href="{% url 'edit_announcement' ann.pk %}" class="btn-edit">✏️ Edit</a>
+                <a href="{% url 'delete_announcement' ann.pk %}" class="btn-delete" onclick="return confirm('Delete this?')">🗑 Delete</a>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <p class="sec-label">All Announcements</p>
+        {% if regular %}
+        {% for ann in regular %}
+        <div class="ann-card {% if ann.priority == 'urgent' %}urgent{% elif ann.priority == 'important' %}important{% endif %}">
+            {% if ann.image %}<img class="ann-img" src="{{ ann.image.url }}" alt="" />{% endif %}
+            <div class="ann-body">
+                <div class="ann-meta">
+                    {% if ann.priority == 'urgent' %}<span class="badge b-urgent">🔴 Urgent</span>
+                    {% elif ann.priority == 'important' %}<span class="badge b-important">⚠️ Important</span>
+                    {% else %}<span class="badge b-normal">📣 Normal</span>{% endif %}
+                    {% if ann.target_year != 'all' %}<span class="badge b-target">Yr {{ ann.target_year }}</span>{% endif %}
+                    {% if ann.target_stream != 'all' %}<span class="badge b-target">{{ ann.target_stream|title }}</span>{% endif %}
+                    {% if ann.target_branch != 'all' %}<span class="badge b-target">{{ ann.target_branch|upper }}</span>{% endif %}
+                    <div class="ann-author-wrap">
+                        <div class="author-av">
+                            {% if ann.author.first_name %}{{ ann.author.first_name.0|upper }}{% else %}{{ ann.author.username.0|upper }}{% endif %}
+                        </div>
+                        <span class="author-name">
+                            {% if ann.author.get_full_name %}{{ ann.author.get_full_name }}{% else %}{{ ann.author.username }}{% endif %}
+                        </span>
+                    </div>
+                    <span class="ann-time">{{ ann.created_at|date:"M d, Y" }}</span>
+                </div>
+                <h2 class="ann-title">{{ ann.title }}</h2>
+                <p class="ann-text">{{ ann.body }}</p>
+            </div>
+            {% if user == ann.author or user.is_staff %}
+            <div class="ann-footer">
+                <a href="{% url 'edit_announcement' ann.pk %}" class="btn-edit">✏️ Edit</a>
+                <a href="{% url 'delete_announcement' ann.pk %}" class="btn-delete" onclick="return confirm('Delete this?')">🗑 Delete</a>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-state">
+            <div class="icon">📭</div>
+            <p>No announcements found.</p>
+        </div>
+        {% endif %}
+
+    </div>
+</body>
+</html>

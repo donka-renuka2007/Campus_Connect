@@ -1,0 +1,318 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Post Announcement — Campus Connect</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap"
+        rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --green: #00e676;
+            --pink: #ff4d9e;
+            --dark: #0a0a0a;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--dark);
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 40px;
+            background: #0d0d0d;
+            border-bottom: 1px solid #1e1e1e;
+        }
+
+        .nav-logo img {
+            width: 85px;
+        }
+
+        .nav-back {
+            text-decoration: none;
+            font-size: 0.82rem;
+            color: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 7px 16px;
+            border-radius: 50px;
+            transition: all 0.2s;
+        }
+
+        .nav-back:hover {
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .main {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 48px 40px;
+        }
+
+        h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        h1 span {
+            color: var(--green);
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.35);
+            margin-bottom: 40px;
+            font-size: 0.88rem;
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.7rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 9px;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 13px 16px;
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.93rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 150px;
+            line-height: 1.7;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            border-color: var(--green);
+            background: rgba(0, 230, 118, 0.03);
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: rgba(255, 255, 255, 0.18);
+        }
+
+        select option {
+            background: #1a1a1a;
+        }
+
+        .file-upload {
+            border: 2px dashed rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 28px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .file-upload:hover {
+            border-color: var(--green);
+        }
+
+        .file-upload input {
+            display: none;
+        }
+
+        .file-upload p {
+            color: rgba(255, 255, 255, 0.25);
+            font-size: 0.85rem;
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            cursor: pointer;
+        }
+
+        .checkbox-row input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--green);
+        }
+
+        .checkbox-row span {
+            font-size: 0.88rem;
+            color: rgba(255, 255, 255, 0.55);
+        }
+
+        .btn-submit {
+            width: 100%;
+            margin-top: 8px;
+            padding: 14px;
+            background: var(--green);
+            color: #000;
+            font-family: 'Syne', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .btn-submit:hover {
+            background: #00ff88;
+            transform: translateY(-1px);
+        }
+
+        .msg-error {
+            background: rgba(255, 77, 77, 0.08);
+            border: 1px solid rgba(255, 77, 77, 0.25);
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 0.85rem;
+            color: #ff6b6b;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .main {
+                padding: 28px 20px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <div class="nav-logo"><img src="{% static 'images/logo.png' %}" alt="Campus Connect" /></div>
+        <a href="{% url 'announcements' %}" class="nav-back">← Back</a>
+    </nav>
+    <div class="main">
+        <h1>Post <span>Announcement</span></h1>
+        <p class="subtitle">Share updates with specific years, streams, or branches</p>
+        {% if messages %}{% for message in messages %}<div class="msg-error">{{ message }}</div>{% endfor %}{% endif %}
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" name="title" placeholder="Enter announcement title" required />
+            </div>
+            <div class="form-group">
+                <label>Body / Content</label>
+                <textarea name="body" placeholder="Write announcement details..." required></textarea>
+            </div>
+
+            <!-- Targeting -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Target Year</label>
+                    <select name="target_year">
+                        <option value="all">All Years</option>
+                        <option value="1">1st Year</option>
+                        <option value="2">2nd Year</option>
+                        <option value="3">3rd Year</option>
+                        <option value="4">4th Year</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Target Stream</label>
+                    <select name="target_stream">
+                        <option value="all">All Streams</option>
+                        <option value="computing">Computing</option>
+                        <option value="non-computing">Non-Computing</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Target Branch</label>
+                    <select name="target_branch">
+                        <option value="all">All Branches</option>
+                        <optgroup label="Computing">
+                            <option value="aiml">AI & ML</option>
+                            <option value="cse">CSE</option>
+                            <option value="csd">CSD</option>
+                            <option value="cst">CST</option>
+                            <option value="it">IT</option>
+                        </optgroup>
+                        <optgroup label="Non-Computing">
+                            <option value="ece">ECE</option>
+                            <option value="eee">EEE</option>
+                            <option value="ce">Civil Engineering</option>
+                            <option value="me">Mechanical</option>
+                        </optgroup>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Priority</label>
+                <select name="priority">
+                    <option value="normal">📣 Normal</option>
+                    <option value="important">⚠️ Important</option>
+                    <option value="urgent">🔴 Urgent</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Image (optional)</label>
+                <div class="file-upload" onclick="document.getElementById('img-inp').click()">
+                    <input type="file" id="img-inp" name="image" accept="image/*"
+                        onchange="document.querySelector('.file-upload p').textContent = this.files[0]?.name || 'Click to upload'" />
+                    <div style="font-size:1.8rem;margin-bottom:8px">🖼️</div>
+                    <p>Click to upload image</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="checkbox-row">
+                    <input type="checkbox" name="is_pinned" />
+                    <span>📌 Pin this announcement to the top</span>
+                </label>
+            </div>
+            <button type="submit" class="btn-submit">📢 POST ANNOUNCEMENT</button>
+        </form>
+    </div>
+</body>
+
+</html>

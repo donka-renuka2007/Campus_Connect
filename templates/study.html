@@ -1,0 +1,510 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Study — Campus Connect</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap"
+        rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --green: #00e676;
+            --pink: #ff4d9e;
+            --dark: #0a0a0a;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--dark);
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        /* NAVBAR */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 40px;
+            background: #0d0d0d;
+            border-bottom: 1px solid #1e1e1e;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-logo img {
+            width: 85px;
+        }
+
+        .nav-center {
+            display: flex;
+            gap: 6px;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            font-family: 'Syne', sans-serif;
+            font-size: 0.76rem;
+            letter-spacing: 0.08em;
+            padding: 8px 18px;
+            border-radius: 50px;
+            color: rgba(255, 255, 255, 0.45);
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-link.active {
+            color: var(--green);
+            border-color: rgba(0, 230, 118, 0.25);
+            background: rgba(0, 230, 118, 0.06);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+        }
+
+        /* Profile dropdown */
+        .profile-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            padding: 6px 14px 6px 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .profile-btn:hover {
+            border-color: var(--green);
+        }
+
+        .avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--green), var(--pink));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #000;
+            overflow: hidden;
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-name {
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: #161616;
+            border: 1px solid #2a2a2a;
+            border-radius: 14px;
+            padding: 8px;
+            min-width: 180px;
+            display: none;
+            z-index: 200;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .dropdown.open {
+            display: block;
+            animation: fadeUp 0.2s ease;
+        }
+
+        .dropdown a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.85rem;
+            transition: all 0.15s;
+        }
+
+        .dropdown a:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+
+        .dropdown hr {
+            border: none;
+            border-top: 1px solid #222;
+            margin: 6px 0;
+        }
+
+        .dropdown a.danger:hover {
+            background: rgba(255, 77, 77, 0.08);
+            color: #ff6b6b;
+        }
+
+        /* PAGE HEADER */
+        .page-header {
+            padding: 40px 40px 28px;
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        .page-header h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+        }
+
+        .page-header h1 span {
+            color: var(--green);
+        }
+
+        .page-header p {
+            color: rgba(255, 255, 255, 0.35);
+            margin-top: 8px;
+            font-size: 0.9rem;
+        }
+
+        /* GRID */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 40px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .study-card {
+            background: #111;
+            border: 1px solid #1e1e1e;
+            border-radius: 18px;
+            padding: 32px 28px;
+            text-decoration: none;
+            color: #fff;
+            transition: transform 0.25s, border-color 0.25s, background 0.25s;
+            animation: fadeUp 0.5s ease both;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .study-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s;
+        }
+
+        .study-card:hover {
+            transform: translateY(-4px);
+            border-color: #2a2a2a;
+            background: #141414;
+        }
+
+        .study-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .card-icon {
+            font-size: 2.2rem;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        .card-desc {
+            font-size: 0.84rem;
+            color: rgba(255, 255, 255, 0.4);
+            line-height: 1.6;
+        }
+
+        .card-tag {
+            display: inline-block;
+            margin-top: 16px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 3px 10px;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* card accent colors */
+        .c1 {
+            --accent: #00e676;
+        }
+
+        .c2 {
+            --accent: #ff4d9e;
+        }
+
+        .c3 {
+            --accent: #ffc107;
+        }
+
+        .c4 {
+            --accent: #ff6b6b;
+        }
+
+        .c5 {
+            --accent: #64b5f6;
+        }
+
+        .c6 {
+            --accent: #ce93d8;
+        }
+
+        .c7 {
+            --accent: #80cbc4;
+        }
+
+        .c8 {
+            --accent: #ffb74d;
+        }
+
+        .c9 {
+            --accent: #a5d6a7;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .study-card:nth-child(1) {
+            animation-delay: 0.05s;
+        }
+
+        .study-card:nth-child(2) {
+            animation-delay: 0.10s;
+        }
+
+        .study-card:nth-child(3) {
+            animation-delay: 0.15s;
+        }
+
+        .study-card:nth-child(4) {
+            animation-delay: 0.20s;
+        }
+
+        .study-card:nth-child(5) {
+            animation-delay: 0.25s;
+        }
+
+        .study-card:nth-child(6) {
+            animation-delay: 0.30s;
+        }
+
+        .study-card:nth-child(7) {
+            animation-delay: 0.35s;
+        }
+
+        .study-card:nth-child(8) {
+            animation-delay: 0.40s;
+        }
+
+        .study-card:nth-child(9) {
+            animation-delay: 0.45s;
+        }
+
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: repeat(2, 1fr);
+                padding: 24px 20px;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            nav {
+                padding: 12px 18px;
+            }
+
+            .nav-center {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav>
+        <div class="nav-logo">
+            <a href="{% url 'home' %}"><img src="{% static 'images/logo.png' %}" alt="Campus Connect" /></a>
+        </div>
+        <div class="nav-center">
+            <a href="{% url 'announcements' %}" class="nav-link">📢 Announcements</a>
+            <a href="{% url 'study' %}" class="nav-link active">📚 Study</a>
+        </div>
+        <div class="nav-right">
+            <div class="profile-btn" onclick="toggleDD()">
+                <div class="avatar">
+                    {% if profile and profile.avatar %}<img src="{{ profile.avatar.url }}" alt="" />
+                    {% elif user.first_name %}{{ user.first_name.0|upper }}
+                    {% else %}{{ user.username.0|upper }}{% endif %}
+                </div>
+                <span class="profile-name">{{ user.first_name|default:user.username }}</span>
+                <span style="font-size:0.6rem;color:rgba(255,255,255,0.3);margin-left:2px;">▼</span>
+            </div>
+            <div class="dropdown" id="dd">
+                <a href="{% url 'profile' %}">👤 View Profile</a>
+                <a href="{% url 'edit_profile' %}">✏️ Edit Profile</a>
+                <hr />
+                <a href="{% url 'logout' %}" class="danger">🚪 Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <h1>📚 <span>Study Hub</span></h1>
+        <p>Everything you need to learn, grow, and succeed — all in one place.</p>
+    </div>
+
+    <!-- GRID -->
+    <div class="grid">
+
+        <a href="#" class="study-card c1">
+            <div class="card-icon">📂</div>
+            <div class="card-title">Resources Access</div>
+            <div class="card-desc">Browse and download study materials, lecture notes, and reference documents shared by
+                faculty.</div>
+            <span class="card-tag">Browse</span>
+        </a>
+
+        <a href="#" class="study-card c2">
+            <div class="card-icon">📤</div>
+            <div class="card-title">Resources Upload</div>
+            <div class="card-desc">Upload and share your notes, assignments, or study materials with your classmates.
+            </div>
+            <span class="card-tag">Upload</span>
+        </a>
+
+        <a href="#" class="study-card c3">
+            <div class="card-icon">🧠</div>
+            <div class="card-title">Self Study</div>
+            <div class="card-desc">Create personal study sessions, set timers, and track your learning progress by
+                topic.</div>
+            <span class="card-tag">Focus</span>
+        </a>
+
+        <a href="#" class="study-card c4">
+            <div class="card-icon">📝</div>
+            <div class="card-title">Complaint Portal</div>
+            <div class="card-desc">Raise academic or campus-related complaints and track their resolution status.</div>
+            <span class="card-tag">Submit</span>
+        </a>
+
+        <a href="#" class="study-card c5">
+            <div class="card-icon">📨</div>
+            <div class="card-title">Permission Sending</div>
+            <div class="card-desc">Send leave requests, permission letters, and OD applications directly to faculty.
+            </div>
+            <span class="card-tag">Request</span>
+        </a>
+
+        <a href="#" class="study-card c6">
+            <div class="card-icon">📚</div>
+            <div class="card-title">Library Management</div>
+            <div class="card-desc">Search the library catalog, check availability, and manage your book borrowings.
+            </div>
+            <span class="card-tag">Library</span>
+        </a>
+
+        <a href="#" class="study-card c7">
+            <div class="card-icon">🎯</div>
+            <div class="card-title">My Goals</div>
+            <div class="card-desc">Set academic and personal goals, track milestones, and stay motivated every day.
+            </div>
+            <span class="card-tag">Goals</span>
+        </a>
+
+        <a href="#" class="study-card c8">
+            <div class="card-icon">💻</div>
+            <div class="card-title">Compiler</div>
+            <div class="card-desc">Write, compile, and run code directly in the browser. Supports multiple languages.
+            </div>
+            <span class="card-tag">Code</span>
+        </a>
+
+        <a href="#" class="study-card c9">
+            <div class="card-icon">🤖</div>
+            <div class="card-title">Chat with Bot</div>
+            <div class="card-desc">Ask questions, get explanations, and get AI-powered help on any academic topic.</div>
+            <span class="card-tag">AI Help</span>
+        </a>
+
+    </div>
+
+    <script>
+        function toggleDD() {
+            document.getElementById('dd').classList.toggle('open');
+        }
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('.nav-right')) {
+                document.getElementById('dd').classList.remove('open');
+            }
+        });
+    </script>
+</body>
+
+</html>
