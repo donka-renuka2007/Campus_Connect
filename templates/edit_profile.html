@@ -1,304 +1,238 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Edit Profile — Campus Connect</title>
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap"
-        rel="stylesheet" />
-
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
     <style>
-        body {
-            font-family: 'DM Sans', sans-serif;
-            background: #0a0a0a;
-            color: white;
-        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'DM Sans', sans-serif; background: #0a0a0a; color: white; min-height: 100vh; }
 
-        nav {
-            display: flex;
-            justify-content: space-between;
-            padding: 15px 40px;
-            background: #0d0d0d;
-        }
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 16px 40px; background: #0d0d0d; border-bottom: 1px solid #1e1e1e; }
+        .nav-logo img { width: 80px; }
+        .back-btn { text-decoration: none; color: #aaa; border: 1px solid #333; padding: 7px 16px; border-radius: 30px; font-size: 0.85rem; transition: all 0.2s; }
+        .back-btn:hover { color: white; border-color: #00e676; }
 
-        .main {
-            max-width: 700px;
-            margin: auto;
-            padding: 40px;
-        }
+        .main { max-width: 700px; margin: auto; padding: 40px 20px; }
+        h1 { font-family: 'Syne', sans-serif; font-size: 1.8rem; margin-bottom: 6px; }
+        h1 span { color: #00e676; }
+        .subtitle { color: #666; font-size: 0.88rem; margin-bottom: 30px; }
 
-        h1 span {
-            color: #00e676;
-        }
+        .section-header { font-size: 11px; letter-spacing: 3px; color: #555; text-transform: uppercase; margin: 28px 0 14px; display: flex; align-items: center; gap: 10px; }
+        .section-header::after { content: ''; flex: 1; height: 1px; background: #1e1e1e; }
 
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .form-group { margin-bottom: 16px; }
+        label { font-size: 11px; color: #777; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 7px; }
 
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            font-size: 12px;
-            color: #aaa;
-        }
-
-        input,
+        input[type="text"],
+        input[type="email"],
+        input[type="url"],
+        input[type="number"],
+        input[type="file"],
+        textarea,
         select {
-            width: 100%;
-            padding: 12px;
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 8px;
-            color: white;
+            width: 100%; padding: 11px 14px; background: #111;
+            border: 1px solid #2a2a2a; border-radius: 9px; color: white;
+            font-family: 'DM Sans', sans-serif; font-size: 0.9rem; outline: none;
+            transition: border-color 0.2s;
         }
+        input:focus, textarea:focus, select:focus { border-color: #00e676; }
+        select option { background: #1a1a1a; }
+        textarea { resize: vertical; min-height: 90px; }
 
-        .avatar-preview {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            background: #00e676;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-            overflow: hidden;
-        }
+        .avatar-row { display: flex; gap: 20px; align-items: center; margin-bottom: 20px; }
+        .avatar-preview { width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, #00e676, #ff4d9e); display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 1.4rem; color: black; overflow: hidden; flex-shrink: 0; }
+        .avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
 
-        .avatar-preview img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+        .btn-submit { width: 100%; margin-top: 20px; padding: 14px; background: #00e676; border: none; font-weight: bold; border-radius: 10px; cursor: pointer; font-size: 0.95rem; color: #000; transition: background 0.2s; }
+        .btn-submit:hover { background: #00ff88; }
 
-        .btn-submit {
-            width: 100%;
-            padding: 14px;
-            background: #00e676;
-            border: none;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-        }
+        .msg { border-radius: 9px; padding: 10px 14px; margin-bottom: 18px; font-size: 0.85rem; }
+        .msg.success { background: rgba(0,230,118,0.08); border: 1px solid rgba(0,230,118,0.2); color: #00e676; }
+        .msg.error   { background: rgba(255,77,77,0.08);  border: 1px solid rgba(255,77,77,0.2);  color: #ff6b6b; }
 
-        .msg-success {
-            background: #003b22;
-            color: #00e676;
-            padding: 10px;
-            margin-bottom: 20px;
-            border-radius: 8px;
+        .hint { font-size: 0.75rem; color: #555; margin-top: 5px; }
+
+        @media (max-width: 600px) {
+            nav { padding: 14px 18px; }
+            .main { padding: 24px 16px; }
+            .form-row { grid-template-columns: 1fr; }
         }
     </style>
 </head>
-
 <body>
 
-    <nav>
-        <img src="{% static 'images/logo.png' %}" width="80">
-        <a href="{% url 'profile' %}" style="color:white;">← Back</a>
-    </nav>
+<nav>
+    <div class="nav-logo">
+        <a href="{% url 'home' %}"><img src="{% static 'images/logo.png' %}" alt="Campus Connect"></a>
+    </div>
+    <a href="{% url 'profile' %}" class="back-btn">← Back to Profile</a>
+</nav>
 
-    <div class="main">
+<div class="main">
+    <h1>Edit <span>Profile</span></h1>
+    <p class="subtitle">
+        {% if profile.role == 'faculty' %}Update your teacher profile{% else %}Update your student profile{% endif %}
+    </p>
 
-        <h1>Edit <span>Profile</span></h1>
+    {% if messages %}
+    {% for message in messages %}
+    <div class="msg {% if message.tags == 'error' %}error{% else %}success{% endif %}">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
 
-        <!-- Messages -->
-        {% if messages %}
-        {% for message in messages %}
-        <div class="msg-success">{{ message }}</div>
-        {% endfor %}
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- ── PROFILE PHOTO ── -->
+        <p class="section-header">Profile Photo</p>
+        <div class="avatar-row">
+            <div class="avatar-preview">
+                {% if profile.avatar %}
+                <img src="{{ profile.avatar.url }}" alt="avatar">
+                {% elif user.first_name %}
+                {{ user.first_name|slice:":1"|upper }}
+                {% else %}
+                {{ user.username|slice:":1"|upper }}
+                {% endif %}
+            </div>
+            <div style="flex:1">
+                <input type="file" name="avatar" accept="image/*">
+                <p class="hint">JPG or PNG. Shown as your profile picture.</p>
+            </div>
+        </div>
+
+        <!-- ── PERSONAL INFO (shared by both roles) ── -->
+        <p class="section-header">Personal Info</p>
+        <div class="form-row">
+            <div class="form-group">
+                <label>First Name</label>
+                <input type="text" name="first_name" value="{{ user.first_name }}">
+            </div>
+            <div class="form-group">
+                <label>Last Name</label>
+                <input type="text" name="last_name" value="{{ user.last_name }}">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" value="{{ user.email }}">
+            </div>
+            <div class="form-group">
+                <label>Mobile Number</label>
+                <input type="text" name="phone" value="{{ profile.phone|default:'' }}">
+            </div>
+        </div>
+
+        <!-- ════════════ FACULTY FIELDS ════════════ -->
+        {% if profile.role == 'faculty' %}
+
+        <p class="section-header">Teacher Details</p>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Teacher ID</label>
+                <input type="text" name="teacher_id" value="{{ profile.teacher_id|default:'' }}" placeholder="e.g. TCH-2024-001">
+            </div>
+            <div class="form-group">
+                <label>Department</label>
+                <select name="department">
+                    <option value="">Select Department</option>
+                    <option value="cse"   {% if profile.department == 'cse'   %}selected{% endif %}>Computer Science & Engineering</option>
+                    <option value="ece"   {% if profile.department == 'ece'   %}selected{% endif %}>Electronics & Communication</option>
+                    <option value="eee"   {% if profile.department == 'eee'   %}selected{% endif %}>Electrical & Electronics</option>
+                    <option value="ce"    {% if profile.department == 'ce'    %}selected{% endif %}>Civil Engineering</option>
+                    <option value="me"    {% if profile.department == 'me'    %}selected{% endif %}>Mechanical Engineering</option>
+                    <option value="maths" {% if profile.department == 'maths' %}selected{% endif %}>Mathematics</option>
+                    <option value="phy"   {% if profile.department == 'phy'   %}selected{% endif %}>Physics</option>
+                    <option value="chem"  {% if profile.department == 'chem'  %}selected{% endif %}>Chemistry</option>
+                    <option value="eng"   {% if profile.department == 'eng'   %}selected{% endif %}>English</option>
+                    <option value="other" {% if profile.department == 'other' %}selected{% endif %}>Other</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Years of Experience</label>
+            <input type="number" name="experience" min="0" max="60" value="{{ profile.experience|default:'' }}" placeholder="e.g. 5">
+        </div>
+
+        <div class="form-group">
+            <label>Subjects Teaching</label>
+            <textarea name="subjects_teaching" placeholder="e.g. Data Structures, Algorithms, DBMS">{{ profile.subjects_teaching|default:'' }}</textarea>
+            <p class="hint">Enter subjects separated by commas. They will be shown as individual tags on your profile.</p>
+        </div>
+
+        <p class="section-header">Social & Links</p>
+        <div class="form-group">
+            <label>LinkedIn</label>
+            <input type="url" name="linkedin" value="{{ profile.linkedin|default:'' }}" placeholder="https://linkedin.com/in/yourname">
+        </div>
+
+        <!-- ════════════ STUDENT FIELDS ════════════ -->
+        {% else %}
+
+        <p class="section-header">Academic Info</p>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Roll Number</label>
+                <input type="text" name="roll_no" value="{{ profile.roll_no|default:'' }}">
+            </div>
+            <div class="form-group">
+                <label>Year</label>
+                <select name="year">
+                    <option value="">Select Year</option>
+                    {% for code, label in years %}
+                    <option value="{{ code }}" {% if profile.year == code %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Branch</label>
+            <select name="branch">
+                <option value="">Select Branch</option>
+                <optgroup label="Computing">
+                    <option value="aiml" {% if profile.branch == 'aiml' %}selected{% endif %}>AI &amp; ML</option>
+                    <option value="cse"  {% if profile.branch == 'cse'  %}selected{% endif %}>CSE</option>
+                    <option value="csd"  {% if profile.branch == 'csd'  %}selected{% endif %}>CSD</option>
+                    <option value="cst"  {% if profile.branch == 'cst'  %}selected{% endif %}>CST</option>
+                    <option value="it"   {% if profile.branch == 'it'   %}selected{% endif %}>IT</option>
+                </optgroup>
+                <optgroup label="Non-Computing">
+                    <option value="ece" {% if profile.branch == 'ece' %}selected{% endif %}>ECE</option>
+                    <option value="eee" {% if profile.branch == 'eee' %}selected{% endif %}>EEE</option>
+                    <option value="ce"  {% if profile.branch == 'ce'  %}selected{% endif %}>Civil Engineering</option>
+                    <option value="me"  {% if profile.branch == 'me'  %}selected{% endif %}>Mechanical</option>
+                </optgroup>
+            </select>
+        </div>
+
+        <p class="section-header">Social & Coding Profiles</p>
+        <div class="form-group">
+            <label>LinkedIn</label>
+            <input type="url" name="linkedin" value="{{ profile.linkedin|default:'' }}" placeholder="https://linkedin.com/in/yourname">
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>LeetCode Username</label>
+                <input type="text" name="leetcode" value="{{ profile.leetcode|default:'' }}" placeholder="e.g. john_doe">
+            </div>
+            <div class="form-group">
+                <label>CodeChef Username</label>
+                <input type="text" name="codechef" value="{{ profile.codechef|default:'' }}" placeholder="e.g. john_doe">
+            </div>
+        </div>
+
         {% endif %}
 
-        <form method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
-
-            <!-- Avatar -->
-            <h3>Profile Photo</h3>
-
-            <div style="display:flex;gap:20px;align-items:center">
-
-                <div class="avatar-preview">
-
-                    {% if profile.avatar %}
-                    <img src="{{ profile.avatar.url }}">
-                    {% else %}
-                    {{ user.username|slice:":1"|upper }}
-                    {% endif %}
-
-                </div>
-
-                <input type="file" name="avatar">
-
-            </div>
-
-            <hr><br>
-
-            <!-- Personal Info -->
-
-            <h3>Personal Info</h3>
-
-            <div class="form-row">
-
-                <div class="form-group">
-                    <label>First Name</label>
-                    <input type="text" name="first_name" value="{{ user.first_name }}">
-                </div>
-
-                <div class="form-group">
-                    <label>Last Name</label>
-                    <input type="text" name="last_name" value="{{ user.last_name }}">
-                </div>
-
-            </div>
-
-            <div class="form-row">
-
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" name="email" value="{{ user.email }}">
-                </div>
-
-                <div class="form-group">
-                    <label>Phone</label>
-                    <input type="text" name="phone" value="{{ profile.phone }}">
-                </div>
-
-            </div>
-
-            <hr><br>
-
-            <!-- Academic Info -->
-
-            <h3>Academic Info</h3>
-
-            <div class="form-row">
-
-                <div class="form-group">
-                    <label>Roll No</label>
-                    <input type="text" name="roll_no" value="{{ profile.roll_no }}">
-                </div>
-
-                <div class="form-group">
-                    <label>Year</label>
-
-                    <select name="year">
-
-                        <option value="">Select Year</option>
-
-                        {% for code, label in years %}
-
-                        <option value="{{ code }}"
-                        {% if profile.year == code %}selected{% endif %}>
-                            {{ label }}
-                        </option>
-
-                        {% endfor %}
-
-                    </select>
-
-                </div>
-
-            </div>
-
-            <div class="form-group">
-
-                <label>Branch</label>
-
-                <select name="branch">
-
-                    <option value="">Select Branch</option>
-
-                    <option value="aiml"
-                    {% if profile.branch == "aiml" %}selected{% endif %}>
-                        AI & ML
-                    </option>
-
-                    <option value="cse"
-                    {% if profile.branch == "cse" %}selected{% endif %}>
-                        CSE
-                    </option>
-
-                    <option value="csd"
-                    {% if profile.branch == "csd" %}selected{% endif %}>
-                        CSD
-                    </option>
-
-                    <option value="cst"
-                    {% if profile.branch == "cst" %}selected{% endif %}>
-                        CST
-                    </option>
-
-                    <option value="it"
-                    {% if profile.branch == "it" %}selected{% endif %}>
-                        IT
-                    </option>
-
-                    <option value="ece"
-                    {% if profile.branch == "ece" %}selected{% endif %}>
-                        ECE
-                    </option>
-
-                    <option value="eee"
-                    {% if profile.branch == "eee" %}selected{% endif %}>
-                        EEE
-                    </option>
-
-                    <option value="ce"
-                    {% if profile.branch == "ce" %}selected{% endif %}>
-                        Civil
-                    </option>
-
-                    <option value="me"
-                    {% if profile.branch == "me" %}selected{% endif %}>
-                        Mechanical
-                    </option>
-
-                </select>
-
-            </div>
-
-            <hr><br>
-
-            <!-- Profiles -->
-
-            <h3>Social Profiles</h3>
-
-            <div class="form-group">
-                <label>LinkedIn</label>
-                <input type="url" name="linkedin" value="{{ profile.linkedin }}">
-            </div>
-
-            <div class="form-row">
-
-                <div class="form-group">
-                    <label>LeetCode</label>
-                    <input type="text" name="leetcode" value="{{ profile.leetcode }}">
-                </div>
-
-                <div class="form-group">
-                    <label>CodeChef</label>
-                    <input type="text" name="codechef" value="{{ profile.codechef }}">
-                </div>
-
-            </div>
-
-            <br>
-
-            <button type="submit" class="btn-submit">
-                💾 Save Profile
-            </button>
-
-        </form>
-
-    </div>
+        <button type="submit" class="btn-submit">💾 Save Profile</button>
+    </form>
+</div>
 
 </body>
-
 </html>

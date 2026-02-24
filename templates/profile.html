@@ -1,327 +1,234 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Profile — Campus Connect</title>
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap"
-        rel="stylesheet" />
-
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
     <style>
-        body {
-            font-family: 'DM Sans', sans-serif;
-            background: #0a0a0a;
-            color: white;
-            margin: 0;
-        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'DM Sans', sans-serif; background: #0a0a0a; color: white; min-height: 100vh; }
 
-        nav {
-            display: flex;
-            justify-content: space-between;
-            padding: 16px 40px;
-            background: #0d0d0d;
-            border-bottom: 1px solid #1e1e1e;
-        }
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 16px 40px; background: #0d0d0d; border-bottom: 1px solid #1e1e1e; }
+        .nav-logo img { width: 80px; }
+        .nav-actions { display: flex; gap: 10px; }
+        .nav-btn { text-decoration: none; color: white; padding: 8px 16px; border-radius: 30px; border: 1px solid #444; font-size: 14px; transition: all 0.2s; }
+        .nav-btn:hover { border-color: #00e676; color: #00e676; }
+        .nav-btn.primary { background: #00e676; color: black; font-weight: bold; border-color: #00e676; }
+        .nav-btn.primary:hover { background: #00ff88; }
 
-        .nav-logo img {
-            width: 80px;
-        }
+        .main { max-width: 750px; margin: auto; padding: 40px 20px; }
 
-        .nav-btn {
-            text-decoration: none;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 30px;
-            border: 1px solid #444;
-            font-size: 14px;
-        }
+        /* Hero */
+        .profile-hero { background: #111; border: 1px solid #222; border-radius: 20px; padding: 30px; display: flex; gap: 30px; align-items: center; margin-bottom: 30px; }
+        .big-avatar { width: 90px; height: 90px; border-radius: 50%; background: linear-gradient(135deg, #00e676, #ff4d9e); display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: bold; color: black; overflow: hidden; flex-shrink: 0; }
+        .big-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-info h2 { font-family: 'Syne', sans-serif; font-size: 1.5rem; margin-bottom: 6px; }
+        .username { color: #888; font-size: 0.88rem; margin-bottom: 8px; }
+        .role-badge { display: inline-block; padding: 3px 12px; border-radius: 50px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+        .role-badge.faculty { background: rgba(0,230,118,0.12); color: #00e676; border: 1px solid rgba(0,230,118,0.25); }
+        .role-badge.student { background: rgba(136,153,255,0.12); color: #8899ff; border: 1px solid rgba(136,153,255,0.25); }
 
-        .nav-btn.primary {
-            background: #00e676;
-            color: black;
-            font-weight: bold;
-        }
+        /* Sections */
+        .section-title { margin: 28px 0 14px; font-size: 11px; letter-spacing: 3px; color: #555; text-transform: uppercase; display: flex; align-items: center; gap: 10px; }
+        .section-title::after { content: ''; flex: 1; height: 1px; background: #1e1e1e; }
 
-        .main {
-            max-width: 750px;
-            margin: auto;
-            padding: 40px 20px;
-        }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .info-grid.single { grid-template-columns: 1fr; }
+        .info-card { background: #111; border: 1px solid #1e1e1e; padding: 18px 20px; border-radius: 12px; }
+        .label { font-size: 11px; color: #555; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.08em; }
+        .value { font-size: 14px; color: #eee; }
+        .empty { color: #444; font-style: italic; }
 
-        .profile-hero {
-            background: #111;
-            border: 1px solid #222;
-            border-radius: 20px;
-            padding: 30px;
-            display: flex;
-            gap: 30px;
-            align-items: center;
-        }
+        /* Subjects as tags */
+        .tag-row { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 4px; }
+        .tag { background: rgba(0,230,118,0.08); border: 1px solid rgba(0,230,118,0.18); color: #00e676; padding: 3px 10px; border-radius: 50px; font-size: 0.78rem; }
 
-        .big-avatar {
-            width: 90px;
-            height: 90px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #00e676, #ff4d9e);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-            font-weight: bold;
-            color: black;
-            overflow: hidden;
-        }
-
-        .big-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .profile-info h2 {
-            margin: 0;
-        }
-
-        .username {
-            color: #888;
-            margin-top: 5px;
-        }
-
-        .section-title {
-            margin: 30px 0 15px;
-            font-size: 12px;
-            letter-spacing: 3px;
-            color: #777;
-            text-transform: uppercase;
-        }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        .info-card {
-            background: #111;
-            border: 1px solid #222;
-            padding: 20px;
-            border-radius: 12px;
-        }
-
-        .label {
-            font-size: 11px;
-            color: #777;
-            margin-bottom: 5px;
-        }
-
-        .value {
-            font-size: 14px;
-        }
-
-        .empty {
-            color: #555;
-            font-style: italic;
-        }
-
-        .coding-row {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-        }
-
-        .coding-card {
-            background: #111;
-            border: 1px solid #222;
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-        }
-
-        .handle a {
-            color: #00e676;
-            text-decoration: none;
-            font-weight: bold;
-        }
+        /* Coding / links */
+        .coding-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+        .coding-card { background: #111; border: 1px solid #1e1e1e; padding: 20px; border-radius: 12px; text-align: center; }
+        .coding-card .platform { font-size: 0.75rem; color: #555; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+        .handle a { color: #00e676; text-decoration: none; font-weight: bold; font-size: 0.9rem; }
+        .handle a:hover { text-decoration: underline; }
 
         @media (max-width: 600px) {
-
-            .info-grid,
-            .coding-row {
-                grid-template-columns: 1fr;
-            }
-
-            .profile-hero {
-                flex-direction: column;
-                text-align: center;
-            }
+            nav { padding: 14px 18px; }
+            .main { padding: 24px 16px; }
+            .profile-hero { flex-direction: column; text-align: center; }
+            .info-grid, .coding-row { grid-template-columns: 1fr; }
         }
     </style>
 </head>
-
 <body>
 
-    <!-- NAVBAR -->
-    <nav>
-        <div class="nav-logo">
-            <a href="{% url 'home' %}">
-                <img src="{% static 'images/logo.png' %}">
-            </a>
+<nav>
+    <div class="nav-logo">
+        <a href="{% url 'home' %}"><img src="{% static 'images/logo.png' %}" alt="Campus Connect"></a>
+    </div>
+    <div class="nav-actions">
+        <a href="{% url 'announcements' %}" class="nav-btn">← Announcements</a>
+        <a href="{% url 'edit_profile' %}" class="nav-btn primary">✏️ Edit Profile</a>
+    </div>
+</nav>
+
+<div class="main">
+
+    <!-- HERO -->
+    <div class="profile-hero">
+        <div class="big-avatar">
+            {% if profile.avatar %}
+            <img src="{{ profile.avatar.url }}" alt="avatar">
+            {% elif user.first_name %}
+            {{ user.first_name|slice:":1"|upper }}
+            {% else %}
+            {{ user.username|slice:":1"|upper }}
+            {% endif %}
+        </div>
+        <div class="profile-info">
+            <h2>{{ user.get_full_name|default:user.username }}</h2>
+            <p class="username">@{{ user.username }} · {{ user.email }}</p>
+            {% if profile.role == 'faculty' %}
+            <span class="role-badge faculty">👨‍🏫 Faculty</span>
+            {% else %}
+            <span class="role-badge student">🎓 Student</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ══════════════ FACULTY PROFILE ══════════════ -->
+    {% if profile.role == 'faculty' %}
+
+    <p class="section-title">Teacher Information</p>
+    <div class="info-grid">
+
+        <div class="info-card">
+            <div class="label">Teacher ID</div>
+            <div class="value">
+                {% if profile.teacher_id %}{{ profile.teacher_id }}{% else %}<span class="empty">Not set</span>{% endif %}
+            </div>
         </div>
 
-        <div>
-            <a href="{% url 'announcements' %}" class="nav-btn">← Announcements</a>
-            <a href="{% url 'edit_profile' %}" class="nav-btn primary">Edit Profile</a>
-        </div>
-    </nav>
-
-
-    <div class="main">
-
-        <!-- PROFILE HERO -->
-        <div class="profile-hero">
-
-            <div class="big-avatar">
-
-                {% if profile.avatar %}
-                <img src="{{ profile.avatar.url }}">
-                {% else %}
-
-                {% if user.first_name %}
-                {{ user.first_name|slice:":1"|upper }}
-                {% else %}
-                {{ user.username|slice:":1"|upper }}
-                {% endif %}
-
-                {% endif %}
-
+        <div class="info-card">
+            <div class="label">Department</div>
+            <div class="value">
+                {% if profile.department %}{{ profile.get_department_display }}{% else %}<span class="empty">Not set</span>{% endif %}
             </div>
-
-            <div class="profile-info">
-
-                <h2>
-                    {% if user.get_full_name %}
-                    {{ user.get_full_name }}
-                    {% else %}
-                    {{ user.username }}
-                    {% endif %}
-                </h2>
-
-                <p class="username">@{{ user.username }} · {{ user.email }}</p>
-
-            </div>
-
         </div>
 
-
-        <!-- BASIC INFO -->
-        <p class="section-title">Basic Information</p>
-
-        <div class="info-grid">
-
-            <div class="info-card">
-                <div class="label">Roll Number</div>
-                <div class="value">
-                    {% if profile.roll_no %}
-                    {{ profile.roll_no }}
-                    {% else %}
-                    <span class="empty">Not set</span>
-                    {% endif %}
-                </div>
+        <div class="info-card">
+            <div class="label">Experience</div>
+            <div class="value">
+                {% if profile.experience %}{{ profile.experience }} year{% if profile.experience != 1 %}s{% endif %}{% else %}<span class="empty">Not set</span>{% endif %}
             </div>
-
-            <div class="info-card">
-                <div class="label">Phone</div>
-                <div class="value">
-                    {% if profile.phone %}
-                    {{ profile.phone }}
-                    {% else %}
-                    <span class="empty">Not set</span>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="info-card">
-                <div class="label">Year</div>
-                <div class="value">
-                    {% if profile.year %}
-                    {{ profile.get_year_display }}
-                    {% else %}
-                    <span class="empty">Not set</span>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="info-card">
-                <div class="label">Branch</div>
-                <div class="value">
-                    {% if profile.branch %}
-                    {{ profile.get_branch_display_name }}
-                    {% else %}
-                    <span class="empty">Not set</span>
-                    {% endif %}
-                </div>
-            </div>
-
         </div>
 
-
-        <!-- CODING -->
-        <p class="section-title">Coding Profiles</p>
-
-        <div class="coding-row">
-
-            <div class="coding-card">
-                <div>LeetCode</div>
-
-                {% if profile.leetcode %}
-                <div class="handle">
-                    <a href="https://leetcode.com/{{ profile.leetcode }}" target="_blank">
-                        {{ profile.leetcode }}
-                    </a>
-                </div>
-                {% else %}
-                <div class="empty">Not linked</div>
-                {% endif %}
+        <div class="info-card">
+            <div class="label">Mobile Number</div>
+            <div class="value">
+                {% if profile.phone %}{{ profile.phone }}{% else %}<span class="empty">Not set</span>{% endif %}
             </div>
-
-
-            <div class="coding-card">
-                <div>CodeChef</div>
-
-                {% if profile.codechef %}
-                <div class="handle">
-                    <a href="https://codechef.com/users/{{ profile.codechef }}" target="_blank">
-                        {{ profile.codechef }}
-                    </a>
-                </div>
-                {% else %}
-                <div class="empty">Not linked</div>
-                {% endif %}
-            </div>
-
-
-            <div class="coding-card">
-                <div>LinkedIn</div>
-
-                {% if profile.linkedin %}
-                <div class="handle">
-                    <a href="{{ profile.linkedin }}" target="_blank">
-                        View Profile
-                    </a>
-                </div>
-                {% else %}
-                <div class="empty">Not linked</div>
-                {% endif %}
-            </div>
-
         </div>
 
     </div>
 
-</body>
+    {% if profile.subjects_teaching %}
+    <p class="section-title">Subjects Teaching</p>
+    <div class="info-card">
+        <div class="tag-row">
+            {% for subject in profile.get_subjects_list %}
+            <span class="tag">{{ subject }}</span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 
+    <p class="section-title">Social & Contact</p>
+    <div class="coding-row">
+        <div class="coding-card">
+            <div class="platform">LinkedIn</div>
+            {% if profile.linkedin %}
+            <div class="handle"><a href="{{ profile.linkedin }}" target="_blank">View Profile</a></div>
+            {% else %}<div class="empty">Not linked</div>{% endif %}
+        </div>
+        <div class="coding-card">
+            <div class="platform">Email</div>
+            {% if user.email %}
+            <div class="handle"><a href="mailto:{{ user.email }}">{{ user.email }}</a></div>
+            {% else %}<div class="empty">Not set</div>{% endif %}
+        </div>
+        <div class="coding-card">
+            <div class="platform">Mobile</div>
+            {% if profile.phone %}
+            <div class="handle" style="color:#eee;">{{ profile.phone }}</div>
+            {% else %}<div class="empty">Not set</div>{% endif %}
+        </div>
+    </div>
+
+    <!-- ══════════════ STUDENT PROFILE ══════════════ -->
+    {% else %}
+
+    <p class="section-title">Basic Information</p>
+    <div class="info-grid">
+
+        <div class="info-card">
+            <div class="label">Roll Number</div>
+            <div class="value">
+                {% if profile.roll_no %}{{ profile.roll_no }}{% else %}<span class="empty">Not set</span>{% endif %}
+            </div>
+        </div>
+
+        <div class="info-card">
+            <div class="label">Phone</div>
+            <div class="value">
+                {% if profile.phone %}{{ profile.phone }}{% else %}<span class="empty">Not set</span>{% endif %}
+            </div>
+        </div>
+
+        <div class="info-card">
+            <div class="label">Year</div>
+            <div class="value">
+                {% if profile.year %}{{ profile.get_year_display }}{% else %}<span class="empty">Not set</span>{% endif %}
+            </div>
+        </div>
+
+        <div class="info-card">
+            <div class="label">Branch</div>
+            <div class="value">
+                {% if profile.branch %}{{ profile.get_branch_display_name }}{% else %}<span class="empty">Not set</span>{% endif %}
+            </div>
+        </div>
+
+    </div>
+
+    <p class="section-title">Coding Profiles</p>
+    <div class="coding-row">
+
+        <div class="coding-card">
+            <div class="platform">LeetCode</div>
+            {% if profile.leetcode %}
+            <div class="handle"><a href="https://leetcode.com/{{ profile.leetcode }}" target="_blank">{{ profile.leetcode }}</a></div>
+            {% else %}<div class="empty">Not linked</div>{% endif %}
+        </div>
+
+        <div class="coding-card">
+            <div class="platform">CodeChef</div>
+            {% if profile.codechef %}
+            <div class="handle"><a href="https://codechef.com/users/{{ profile.codechef }}" target="_blank">{{ profile.codechef }}</a></div>
+            {% else %}<div class="empty">Not linked</div>{% endif %}
+        </div>
+
+        <div class="coding-card">
+            <div class="platform">LinkedIn</div>
+            {% if profile.linkedin %}
+            <div class="handle"><a href="{{ profile.linkedin }}" target="_blank">View Profile</a></div>
+            {% else %}<div class="empty">Not linked</div>{% endif %}
+        </div>
+
+    </div>
+
+    {% endif %}
+
+</div>
+</body>
 </html>

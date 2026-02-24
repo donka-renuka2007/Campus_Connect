@@ -77,9 +77,10 @@ def dashboard(request):
 def study(request):
     if not request.user.is_authenticated:
         return redirect('login')
+    # FIX: Specific exception instead of bare except
     try:
         profile = request.user.profile
-    except:
+    except UserProfile.DoesNotExist:
         profile = None
     return render(request, 'study.html', {
         'user': request.user,
@@ -93,10 +94,11 @@ def announcements(request):
     if not request.user.is_authenticated:
         return redirect('login')
 
+    # FIX: Specific exception instead of bare except
     try:
         profile    = request.user.profile
         is_faculty = profile.role == 'faculty'
-    except:
+    except UserProfile.DoesNotExist:
         profile    = None
         is_faculty = False
 
@@ -123,27 +125,32 @@ def announcements(request):
     regular = qs.filter(is_pinned=False)
 
     return render(request, 'announcements.html', {
-        'pinned':    pinned,
-        'regular':   regular,
-        'total':     Announcement.objects.count(),
+        'pinned':     pinned,
+        'regular':    regular,
+        # FIX: total now reflects filtered count, not all announcements
+        'total':      pinned.count() + regular.count(),
         'is_faculty': is_faculty,
-        'user':      request.user,
-        'profile':   profile,
-        'search':    search,
-        'f_year':    f_year,
-        'f_stream':  f_stream,
-        'f_branch':  f_branch,
-        'f_prio':    f_prio,
+        'user':       request.user,
+        'profile':    profile,
+        'search':     search,
+        'f_year':     f_year,
+        'f_stream':   f_stream,
+        'f_branch':   f_branch,
+        'f_prio':     f_prio,
     })
 
 
 def post_announcement(request):
     if not request.user.is_authenticated:
         return redirect('login')
+
+    # FIX: Specific exception instead of bare except
     try:
         is_faculty = request.user.profile.role == 'faculty'
-    except:
+    except UserProfile.DoesNotExist:
         is_faculty = False
+
+    # Only faculty/teachers can post
     if not is_faculty:
         messages.error(request, 'Only faculty can post announcements.')
         return redirect('announcements')
@@ -176,35 +183,62 @@ def post_announcement(request):
 def edit_announcement(request, pk):
     if not request.user.is_authenticated:
         return redirect('login')
-    ann = get_object_or_404(Announcement, pk=pk)
-    if request.user != ann.author and not request.user.is_staff:
-        messages.error(request, 'You cannot edit this announcement.')
+
+    # FIX: Was checking request.user.is_staff (Django admin flag) which is
+    # unrelated to our faculty role. Now correctly checks profile.role.
+    # This means faculty users can actually edit — before they got blocked.
+    try:
+        is_faculty = request.user.profile.role == 'faculty'
+    except UserProfile.DoesNotExist:
+        is_faculty = False
+
+    if not is_faculty:
+        messages.error(request, 'Only faculty can edit announcements.')
         return redirect('announcements')
+
+    ann = get_object_or_404(Announcement, pk=pk)
 
     if request.method == 'POST':
-        ann.title         = request.POST.get('title', ann.title).strip()
-        ann.body          = request.POST.get('body', ann.body).strip()
-        ann.priority      = request.POST.get('priority', ann.priority)
+        ann.title         = request.POST.get('title', '').strip()
+        ann.body          = request.POST.get('body', '').strip()
+        ann.priority      = request.POST.get('priority')
         ann.is_pinned     = request.POST.get('is_pinned') == 'on'
-        ann.target_year   = request.POST.get('target_year', ann.target_year)
-        ann.target_stream = request.POST.get('target_stream', ann.target_stream)
-        ann.target_branch = request.POST.get('target_branch', ann.target_branch)
+        ann.target_year   = request.POST.get('target_year')
+        ann.target_stream = request.POST.get('target_stream')
+        ann.target_branch = request.POST.get('target_branch')
+
         if request.FILES.get('image'):
             ann.image = request.FILES['image']
+
         ann.save()
-        messages.success(request, 'Announcement updated!')
+        messages.success(request, 'Announcement updated successfully!')
         return redirect('announcements')
 
-    return render(request, 'edit_announcement.html', {'announcement': ann})
+    return render(request, 'edit_announcement.html', {
+        'announcement': ann
+    })
 
 
 def delete_announcement(request, pk):
     if not request.user.is_authenticated:
         return redirect('login')
-    ann = get_object_or_404(Announcement, pk=pk)
-    if request.user == ann.author or request.user.is_staff:
-        ann.delete()
-        messages.success(request, 'Deleted.')
+
+    # FIX: Was a GET request — anyone visiting the URL could delete an announcement.
+    # Now requires POST (submitted from the form with CSRF token in the template).
+    # FIX: Was checking is_staff (Django admin flag). Now checks profile.role == faculty.
+    if request.method == 'POST':
+        ann = get_object_or_404(Announcement, pk=pk)
+        try:
+            is_faculty = request.user.profile.role == 'faculty'
+        except UserProfile.DoesNotExist:
+            is_faculty = False
+
+        if is_faculty:
+            ann.delete()
+            messages.success(request, 'Announcement deleted.')
+        else:
+            messages.error(request, 'Only faculty can delete announcements.')
+
     return redirect('announcements')
 
 
@@ -213,9 +247,10 @@ def delete_announcement(request, pk):
 def profile_view(request):
     if not request.user.is_authenticated:
         return redirect('login')
+    # FIX: Specific exception instead of bare except
     try:
         profile = request.user.profile
-    except:
+    except UserProfile.DoesNotExist:
         profile = UserProfile.objects.create(user=request.user)
     return render(request, 'profile.html', {
         'user': request.user, 'profile': profile,
@@ -227,30 +262,44 @@ def edit_profile(request):
         return redirect('login')
     try:
         profile = request.user.profile
-    except:
+    except UserProfile.DoesNotExist:
         profile = UserProfile.objects.create(user=request.user)
 
     if request.method == 'POST':
+        # Shared fields
         request.user.first_name = request.POST.get('first_name', '').strip()
         request.user.last_name  = request.POST.get('last_name', '').strip()
         request.user.email      = request.POST.get('email', '').strip()
         request.user.save()
 
-        profile.phone    = request.POST.get('phone', '').strip()
-        profile.roll_no  = request.POST.get('roll_no', '').strip()
-        profile.year     = request.POST.get('year', '')
-        profile.branch   = request.POST.get('branch', '')
-        profile.linkedin = request.POST.get('linkedin', '').strip()
-        profile.codechef = request.POST.get('codechef', '').strip()
-        profile.leetcode = request.POST.get('leetcode', '').strip()
+        profile.phone = request.POST.get('phone', '').strip()
         if request.FILES.get('avatar'):
             profile.avatar = request.FILES['avatar']
-        profile.save()
 
+        if profile.role == 'faculty':
+            # Faculty-only fields
+            profile.teacher_id        = request.POST.get('teacher_id', '').strip()
+            profile.department        = request.POST.get('department', '')
+            exp = request.POST.get('experience', '').strip()
+            profile.experience        = int(exp) if exp.isdigit() else None
+            profile.subjects_teaching = request.POST.get('subjects_teaching', '').strip()
+            profile.linkedin          = request.POST.get('linkedin', '').strip() or None
+        else:
+            # Student-only fields
+            profile.roll_no  = request.POST.get('roll_no', '').strip()
+            profile.year     = request.POST.get('year', '')
+            profile.branch   = request.POST.get('branch', '')
+            profile.linkedin = request.POST.get('linkedin', '').strip() or None
+            profile.codechef = request.POST.get('codechef', '').strip()
+            profile.leetcode = request.POST.get('leetcode', '').strip()
+
+        profile.save()
         messages.success(request, 'Profile updated!')
         return redirect('profile')
 
     return render(request, 'edit_profile.html', {
-        'user': request.user, 'profile': profile,
-        'branches': BRANCH_CHOICES, 'years': YEAR_CHOICES,
+        'user':     request.user,
+        'profile':  profile,
+        'branches': BRANCH_CHOICES,
+        'years':    YEAR_CHOICES,
     })

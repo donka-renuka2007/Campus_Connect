@@ -1,192 +1,146 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Announcement — Campus Connect</title>
-
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=DM+Sans:wght@400;500&display=swap"
-        rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        body {
-            margin: 0;
-            font-family: 'DM Sans', sans-serif;
-            background: #0a0a0a;
-            color: white;
+        body { margin: 0; font-family: 'DM Sans', sans-serif; background: #0a0a0a; color: white; }
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 16px 40px; background: #0d0d0d; border-bottom: 1px solid #1e1e1e; }
+        .logo img { width: 85px; }
+        .back-btn { text-decoration: none; color: #aaa; border: 1px solid #333; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; }
+        .back-btn:hover { color: white; border-color: #00e676; }
+        .main { max-width: 700px; margin: auto; padding: 50px 30px; }
+        h1 { font-family: 'Syne', sans-serif; font-size: 2rem; }
+        h1 span { color: #00e676; }
+        .subtitle { color: #888; margin-bottom: 35px; font-size: 0.9rem; }
+        .form-group { margin-bottom: 22px; }
+        label { font-size: 0.75rem; text-transform: uppercase; color: #aaa; margin-bottom: 6px; display: block; letter-spacing: 0.1em; }
+        input[type="text"], textarea, select {
+            width: 100%; background: #111; border: 1px solid #333; border-radius: 10px;
+            padding: 12px 14px; color: white; font-size: 0.95rem; outline: none;
+            box-sizing: border-box;
         }
-
-        nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 40px;
-            background: #0d0d0d;
-            border-bottom: 1px solid #1e1e1e;
-        }
-
-        .logo img {
-            width: 85px;
-        }
-
-        .back-btn {
-            text-decoration: none;
-            color: #aaa;
-            border: 1px solid #333;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-        }
-
-        .back-btn:hover {
-            color: white;
-            border-color: #00e676;
-        }
-
-        .main {
-            max-width: 700px;
-            margin: auto;
-            padding: 50px 30px;
-        }
-
-        h1 {
-            font-family: 'Syne', sans-serif;
-            font-size: 2rem;
-        }
-
-        h1 span {
-            color: #00e676;
-        }
-
-        .subtitle {
-            color: #888;
-            margin-bottom: 35px;
-            font-size: 0.9rem;
-        }
-
-        .form-group {
-            margin-bottom: 22px;
-        }
-
-        label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            color: #aaa;
-            margin-bottom: 6px;
-            display: block;
-            letter-spacing: 0.1em;
-        }
-
-        input,
-        textarea {
-            width: 100%;
-            background: #111;
-            border: 1px solid #333;
-            border-radius: 10px;
-            padding: 12px 14px;
-            color: white;
-            font-size: 0.95rem;
-            outline: none;
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 140px;
-        }
-
-        input:focus,
-        textarea:focus {
-            border-color: #00e676;
-        }
-
-        .btn {
-            width: 100%;
-            margin-top: 15px;
-            padding: 14px;
-            background: #00e676;
-            border: none;
-            border-radius: 10px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
-
-        .btn:hover {
-            background: #00ff88;
-        }
-
-        .msg {
-            background: rgba(0, 230, 118, 0.1);
-            border: 1px solid rgba(0, 230, 118, 0.3);
-            padding: 10px 14px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            color: #00e676;
-            font-size: 0.85rem;
-        }
-
-        @media(max-width:600px) {
-            .main {
-                padding: 30px 20px;
-            }
-        }
+        textarea { resize: vertical; min-height: 140px; }
+        input[type="text"]:focus, textarea:focus, select:focus { border-color: #00e676; }
+        select option { background: #1a1a1a; }
+        .checkbox-row { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+        .checkbox-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: #00e676; cursor: pointer; }
+        .checkbox-row span { font-size: 0.9rem; color: #ccc; }
+        .btn { width: 100%; margin-top: 15px; padding: 14px; background: #00e676; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 0.9rem; color: #000; }
+        .btn:hover { background: #00ff88; }
+        .msg { background: rgba(0,230,118,0.1); border: 1px solid rgba(0,230,118,0.3); padding: 10px 14px; border-radius: 8px; margin-bottom: 20px; color: #00e676; font-size: 0.85rem; }
+        .msg.error { background: rgba(255,77,77,0.1); border-color: rgba(255,77,77,0.3); color: #ff6b6b; }
+        @media(max-width:600px) { .main { padding: 30px 20px; } }
     </style>
 </head>
-
 <body>
 
-    <!-- Navbar -->
-    <nav>
-        <div class="logo">
-            <img src="{% static 'images/logo.png' %}" alt="Campus Connect">
+<nav>
+    <div class="logo">
+        <img src="{% static 'images/logo.png' %}" alt="Campus Connect">
+    </div>
+    <a href="{% url 'announcements' %}" class="back-btn">← Back</a>
+</nav>
+
+<div class="main">
+    <h1>Edit <span>Announcement</span></h1>
+    <p class="subtitle">Update announcement details</p>
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="msg {% if message.tags == 'error' %}error{% endif %}">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Title -->
+        <div class="form-group">
+            <label>Title</label>
+            <input type="text" name="title" value="{{ announcement.title }}" required>
         </div>
 
-        <a href="{% url 'announcements' %}" class="back-btn">← Back</a>
-    </nav>
+        <!-- FIX: was name="content" and {{ announcement.content }} — field is called "body" in the model -->
+        <div class="form-group">
+            <label>Content</label>
+            <textarea name="body" required>{{ announcement.body }}</textarea>
+        </div>
 
+        <!-- FIX: Priority was missing — caused NOT NULL crash on save -->
+        <div class="form-group">
+            <label>Priority</label>
+            <select name="priority">
+                <option value="normal"    {% if announcement.priority == 'normal'    %}selected{% endif %}>📣 Normal</option>
+                <option value="important" {% if announcement.priority == 'important' %}selected{% endif %}>⚠️ Important</option>
+                <option value="urgent"    {% if announcement.priority == 'urgent'    %}selected{% endif %}>🔴 Urgent</option>
+            </select>
+        </div>
 
-    <!-- Main -->
-    <div class="main">
+        <!-- FIX: target_year was missing -->
+        <div class="form-group">
+            <label>Target Year</label>
+            <select name="target_year">
+                <option value="all" {% if announcement.target_year == 'all' %}selected{% endif %}>All Years</option>
+                <option value="1"   {% if announcement.target_year == '1'   %}selected{% endif %}>1st Year</option>
+                <option value="2"   {% if announcement.target_year == '2'   %}selected{% endif %}>2nd Year</option>
+                <option value="3"   {% if announcement.target_year == '3'   %}selected{% endif %}>3rd Year</option>
+                <option value="4"   {% if announcement.target_year == '4'   %}selected{% endif %}>4th Year</option>
+            </select>
+        </div>
 
-        <h1>Edit <span>Announcement</span></h1>
-        <p class="subtitle">Update announcement details</p>
+        <!-- FIX: target_stream was missing -->
+        <div class="form-group">
+            <label>Target Stream</label>
+            <select name="target_stream">
+                <option value="all"          {% if announcement.target_stream == 'all'          %}selected{% endif %}>All Streams</option>
+                <option value="computing"    {% if announcement.target_stream == 'computing'    %}selected{% endif %}>Computing</option>
+                <option value="non-computing"{% if announcement.target_stream == 'non-computing'%}selected{% endif %}>Non-Computing</option>
+            </select>
+        </div>
 
+        <!-- FIX: target_branch was missing -->
+        <div class="form-group">
+            <label>Target Branch</label>
+            <select name="target_branch">
+                <option value="all"  {% if announcement.target_branch == 'all'  %}selected{% endif %}>All Branches</option>
+                <optgroup label="Computing">
+                    <option value="aiml" {% if announcement.target_branch == 'aiml' %}selected{% endif %}>AI &amp; ML</option>
+                    <option value="cse"  {% if announcement.target_branch == 'cse'  %}selected{% endif %}>CSE</option>
+                    <option value="csd"  {% if announcement.target_branch == 'csd'  %}selected{% endif %}>CSD</option>
+                    <option value="cst"  {% if announcement.target_branch == 'cst'  %}selected{% endif %}>CST</option>
+                    <option value="it"   {% if announcement.target_branch == 'it'   %}selected{% endif %}>IT</option>
+                </optgroup>
+                <optgroup label="Non-Computing">
+                    <option value="ece" {% if announcement.target_branch == 'ece' %}selected{% endif %}>ECE</option>
+                    <option value="eee" {% if announcement.target_branch == 'eee' %}selected{% endif %}>EEE</option>
+                    <option value="ce"  {% if announcement.target_branch == 'ce'  %}selected{% endif %}>Civil Engg</option>
+                    <option value="me"  {% if announcement.target_branch == 'me'  %}selected{% endif %}>Mechanical</option>
+                </optgroup>
+            </select>
+        </div>
 
-        <!-- Messages -->
-        {% if messages %}
-        {% for message in messages %}
-        <div class="msg">{{ message }}</div>
-        {% endfor %}
-        {% endif %}
-
-
-        <!-- Form -->
-        <form method="POST">
-
-            {% csrf_token %}
-
-            <div class="form-group">
-                <label>Title</label>
-                <input type="text" name="title" value="{{ announcement.title }}" required>
+        <!-- FIX: is_pinned checkbox was missing -->
+        <div class="form-group">
+            <label>Pin this announcement</label>
+            <div class="checkbox-row">
+                <input type="checkbox" name="is_pinned" {% if announcement.is_pinned %}checked{% endif %}>
+                <span>Show at the top of announcements</span>
             </div>
+        </div>
 
+        <!-- Optional: update image -->
+        <div class="form-group">
+            <label>Update Image (optional)</label>
+            <input type="file" name="image" accept="image/*" style="padding: 8px 14px; cursor: pointer;">
+        </div>
 
-            <div class="form-group">
-                <label>Content</label>
-                <textarea name="content" required>{{ announcement.content }}</textarea>
-            </div>
-
-
-            <button type="submit" class="btn">
-                💾 Update Announcement
-            </button>
-
-        </form>
-
-    </div>
+        <button type="submit" class="btn">💾 Update Announcement</button>
+    </form>
+</div>
 
 </body>
-
 </html>
