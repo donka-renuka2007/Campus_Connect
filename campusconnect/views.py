@@ -303,3 +303,18 @@ def edit_profile(request):
         'branches': BRANCH_CHOICES,
         'years':    YEAR_CHOICES,
     })
+ 
+
+
+def compiler(request):
+    profile = None
+    try:
+        profile = request.user.profile
+    except Exception:
+        pass
+
+    context = {
+        'user': request.user,
+        'profile': profile,
+    }
+    return render(request, 'compiler.html', context)

@@ -1,0 +1,1068 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Compiler — Campus Connect</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --green: #00e676;
+      --pink: #ff4d9e;
+      --dark: #0a0a0a;
+      --panel: #111;
+      --border: #1e1e1e;
+      --muted: rgba(255,255,255,0.35);
+    }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--dark);
+      color: #fff;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* NAVBAR */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 40px;
+      background: #0d0d0d;
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+      flex-shrink: 0;
+    }
+    .nav-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--green); text-decoration: none; }
+    .nav-center { display: flex; gap: 6px; }
+    .nav-link {
+      text-decoration: none;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.76rem;
+      letter-spacing: 0.08em;
+      padding: 8px 18px;
+      border-radius: 50px;
+      color: rgba(255,255,255,0.45);
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+    .nav-link:hover { color: #fff; background: rgba(255,255,255,0.05); }
+    .nav-link.active { color: var(--green); border-color: rgba(0,230,118,0.25); background: rgba(0,230,118,0.06); }
+    .nav-right { display: flex; align-items: center; gap: 10px; }
+    .back-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 50px;
+      padding: 6px 16px;
+      cursor: pointer;
+      color: rgba(255,255,255,0.6);
+      font-size: 0.82rem;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .back-btn:hover { border-color: var(--green); color: #fff; }
+
+    /* TOOLBAR */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+      background: #0d0d0d;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .toolbar-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .toolbar-right { display: flex; align-items: center; gap: 8px; }
+
+    .lang-selector {
+      background: #161616;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      padding: 7px 12px;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .lang-selector:focus { border-color: var(--green); }
+
+    .theme-btn {
+      background: #161616;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      color: rgba(255,255,255,0.6);
+      font-size: 0.82rem;
+      padding: 7px 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .theme-btn:hover { border-color: #444; color: #fff; }
+    .theme-btn.active { border-color: var(--green); color: var(--green); background: rgba(0,230,118,0.06); }
+
+    .font-ctrl { display: flex; align-items: center; gap: 6px; }
+    .font-ctrl button {
+      background: #161616;
+      border: 1px solid #2a2a2a;
+      border-radius: 6px;
+      color: rgba(255,255,255,0.5);
+      width: 30px; height: 30px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+    .font-ctrl button:hover { border-color: #444; color: #fff; }
+    .font-ctrl span { font-size: 0.75rem; color: var(--muted); min-width: 28px; text-align: center; }
+
+    .run-btn {
+      background: var(--green);
+      border: none;
+      border-radius: 8px;
+      color: #000;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      padding: 8px 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .run-btn:hover { background: #00ff88; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,230,118,0.3); }
+    .run-btn:active { transform: translateY(0); }
+    .run-btn.running { background: #ffc107; color: #000; }
+
+    .clear-btn {
+      background: transparent;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      color: rgba(255,255,255,0.4);
+      font-size: 0.82rem;
+      padding: 8px 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .clear-btn:hover { border-color: var(--pink); color: var(--pink); }
+
+    /* MAIN LAYOUT */
+    .main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      gap: 0;
+    }
+
+    /* EDITOR PANEL */
+    .editor-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border);
+      min-width: 0;
+    }
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      background: #0e0e0e;
+      border-bottom: 1px solid var(--border);
+      font-family: 'Syne', sans-serif;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+    .panel-header .dots { display: flex; gap: 5px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot.r { background: #ff5f57; }
+    .dot.y { background: #ffbd2e; }
+    .dot.g { background: #28c840; }
+
+    .editor-wrapper {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .line-numbers {
+      background: #0e0e0e;
+      padding: 14px 12px 14px 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #333;
+      text-align: right;
+      user-select: none;
+      min-width: 48px;
+      border-right: 1px solid #1a1a1a;
+      overflow: hidden;
+    }
+
+    .code-editor {
+      flex: 1;
+      background: #0c0c0c;
+      color: #e0e0e0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      padding: 14px 18px;
+      border: none;
+      outline: none;
+      resize: none;
+      tab-size: 2;
+      white-space: pre;
+      overflow: auto;
+      caret-color: var(--green);
+    }
+    .code-editor::selection { background: rgba(0,230,118,0.2); }
+    .code-editor::-webkit-scrollbar { width: 6px; height: 6px; }
+    .code-editor::-webkit-scrollbar-track { background: #0c0c0c; }
+    .code-editor::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 3px; }
+
+    /* RIGHT PANEL */
+    .right-panel {
+      width: 380px;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    /* INPUT */
+    .input-section {
+      height: 40%;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+    .stdin-area {
+      flex: 1;
+      background: #0c0c0c;
+      color: #ccc;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      line-height: 1.6;
+      padding: 12px 16px;
+      border: none;
+      outline: none;
+      resize: none;
+    }
+    .stdin-area::placeholder { color: #2a2a2a; }
+    .stdin-area::-webkit-scrollbar { width: 4px; }
+    .stdin-area::-webkit-scrollbar-thumb { background: #2a2a2a; }
+
+    /* OUTPUT */
+    .output-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .output-box {
+      flex: 1;
+      background: #090909;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      line-height: 1.6;
+      padding: 12px 16px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .output-box::-webkit-scrollbar { width: 4px; }
+    .output-box::-webkit-scrollbar-thumb { background: #2a2a2a; }
+
+    .output-idle { color: #2a2a2a; font-style: italic; }
+    .output-success { color: #a5d6a7; }
+    .output-error { color: #ff6b6b; }
+    .output-running { color: #ffc107; }
+
+    /* STATUS BAR */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 16px;
+      background: #0d0d0d;
+      border-top: 1px solid var(--border);
+      font-size: 0.72rem;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+    .status-lang { color: var(--green); font-family: 'Syne', sans-serif; font-weight: 700; letter-spacing: 0.06em; }
+    .status-info { display: flex; gap: 16px; }
+
+    /* SNIPPETS SIDEBAR */
+    .snippets-panel {
+      width: 200px;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    .snippets-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+    .snippets-list::-webkit-scrollbar { width: 4px; }
+    .snippets-list::-webkit-scrollbar-thumb { background: #2a2a2a; }
+
+    .snippet-item {
+      padding: 8px 10px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.5);
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 2px;
+    }
+    .snippet-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+    .snippet-item .s-icon { font-size: 0.9rem; }
+    .snippet-item .s-label { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; }
+
+    /* LIGHT THEME */
+    body.light { --dark: #f5f5f5; --panel: #fff; --border: #e0e0e0; background: #f0f0f0; color: #111; }
+    body.light .code-editor { background: #fafafa; color: #222; }
+    body.light .line-numbers { background: #f0f0f0; color: #aaa; }
+    body.light nav, body.light .toolbar, body.light .panel-header, body.light .status-bar { background: #fff; border-color: #e0e0e0; }
+    body.light .output-box { background: #f8f8f8; }
+    body.light .stdin-area { background: #fafafa; color: #333; }
+    body.light .lang-selector, body.light .theme-btn, body.light .font-ctrl button { background: #f0f0f0; border-color: #ddd; color: #444; }
+    body.light .lang-selector { color: #222; }
+    body.light .nav-link { color: rgba(0,0,0,0.5); }
+    body.light .nav-link.active { color: #00b257; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { display: inline-block; animation: spin 0.6s linear infinite; }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .cursor-blink { animation: blink 1s step-end infinite; }
+
+    @media (max-width: 900px) {
+      .snippets-panel { display: none; }
+      .right-panel { width: 300px; }
+      nav { padding: 12px 18px; }
+      .nav-center { display: none; }
+    }
+    @media (max-width: 620px) {
+      .right-panel { width: 100%; }
+      .main { flex-direction: column; }
+      .editor-panel { flex: 0 0 55%; border-right: none; border-bottom: 1px solid var(--border); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+  <a href="{% url 'home' %}" class="nav-logo">Campus Connect</a>
+  <div class="nav-center">
+    <a href="{% url 'announcements' %}" class="nav-link">📢 Announcements</a>
+    <a href="{% url 'study' %}" class="nav-link active">📚 Study</a>
+  </div>
+  <div class="nav-right">
+    <a href="{% url 'study' %}" class="back-btn">← Back to Study</a>
+  </div>
+</nav>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <div class="toolbar-left">
+    <select class="lang-selector" id="langSelect" onchange="onLangChange()">
+      <option value="python">🐍 Python 3</option>
+      <option value="javascript">🟨 JavaScript</option>
+      <option value="c">⚙️ C</option>
+      <option value="cpp">⚙️ C++</option>
+      <option value="java">☕ Java</option>
+      <option value="go">🐹 Go</option>
+      <option value="rust">🦀 Rust</option>
+      <option value="php">🐘 PHP</option>
+      <option value="ruby">💎 Ruby</option>
+      <option value="swift">🍎 Swift</option>
+      <option value="kotlin">🎯 Kotlin</option>
+      <option value="bash">🖥️ Bash</option>
+    </select>
+
+    <div class="font-ctrl">
+      <button onclick="changeFontSize(-1)" title="Decrease font">A-</button>
+      <span id="fontSize">13</span>
+      <button onclick="changeFontSize(1)" title="Increase font">A+</button>
+    </div>
+
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">🌙 Dark</button>
+    <button class="theme-btn" onclick="formatCode()">⚡ Format</button>
+    <button class="theme-btn" onclick="copyCode()">📋 Copy</button>
+  </div>
+  <div class="toolbar-right">
+    <button class="clear-btn" onclick="clearAll()">✕ Clear</button>
+    <button class="run-btn" id="runBtn" onclick="runCode()">▶ Run</button>
+  </div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="main">
+
+  <!-- SNIPPETS SIDEBAR -->
+  <div class="snippets-panel">
+    <div class="panel-header">
+      <span>SNIPPETS</span>
+    </div>
+    <div class="snippets-list" id="snippetsList"></div>
+  </div>
+
+  <!-- EDITOR -->
+  <div class="editor-panel">
+    <div class="panel-header">
+      <div class="dots">
+        <div class="dot r"></div>
+        <div class="dot y"></div>
+        <div class="dot g"></div>
+      </div>
+      <span id="fileLabel">main.py</span>
+      <span id="cursorPos" style="font-size:0.68rem;">Ln 1, Col 1</span>
+    </div>
+    <div class="editor-wrapper">
+      <div class="line-numbers" id="lineNumbers">1</div>
+      <textarea class="code-editor" id="codeEditor" spellcheck="false" autocorrect="off" autocapitalize="off" oninput="onEditorInput()" onkeydown="handleTab(event)" onclick="updateCursor()" onkeyup="updateCursor()" onscroll="syncScroll()"></textarea>
+    </div>
+    <!-- STATUS BAR -->
+    <div class="status-bar">
+      <span class="status-lang" id="statusLang">Python 3</span>
+      <div class="status-info">
+        <span id="charCount">0 chars</span>
+        <span id="lineCount">1 lines</span>
+        <span>UTF-8</span>
+        <span id="execTime"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <!-- INPUT -->
+    <div class="input-section">
+      <div class="panel-header">
+        <span>📥 STDIN / INPUT</span>
+        <button class="clear-btn" style="padding:2px 8px;font-size:0.68rem;" onclick="document.getElementById('stdinArea').value=''">Clear</button>
+      </div>
+      <textarea class="stdin-area" id="stdinArea" placeholder="Enter program input here (optional)..."></textarea>
+    </div>
+    <!-- OUTPUT -->
+    <div class="output-section">
+      <div class="panel-header">
+        <span>📤 OUTPUT</span>
+        <div style="display:flex;gap:6px">
+          <button class="clear-btn" style="padding:2px 8px;font-size:0.68rem;" onclick="clearOutput()">Clear</button>
+          <button class="clear-btn" style="padding:2px 8px;font-size:0.68rem;" onclick="copyOutput()">Copy</button>
+        </div>
+      </div>
+      <div class="output-box" id="outputBox">
+        <span class="output-idle">// Output will appear here after running your code...</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─── State ──────────────────────────────────────────────────────────────────
+let currentLang = 'python';
+let fontSize = 13;
+let isDark = true;
+let startTime = null;
+
+// ─── Default templates ──────────────────────────────────────────────────────
+const templates = {
+  python: `# Python 3
+def greet(name):
+    return f"Hello, {name}! 👋"
+
+name = input("Enter your name: ")
+print(greet(name))
+
+# Fibonacci
+def fib(n):
+    a, b = 0, 1
+    for _ in range(n):
+        print(a, end=" ")
+        a, b = b, a + b
+
+print("\\nFibonacci:")
+fib(10)
+`,
+  javascript: `// JavaScript
+function greet(name) {
+  return \`Hello, \${name}! 👋\`;
+}
+
+const name = "World";
+console.log(greet(name));
+
+// Array operations
+const nums = [1, 2, 3, 4, 5];
+const doubled = nums.map(n => n * 2);
+console.log("Doubled:", doubled);
+
+const sum = nums.reduce((a, b) => a + b, 0);
+console.log("Sum:", sum);
+`,
+  c: `#include <stdio.h>
+#include <string.h>
+
+void greet(char *name) {
+    printf("Hello, %s!\\n", name);
+}
+
+int main() {
+    char name[100];
+    printf("Enter your name: ");
+    scanf("%s", name);
+    greet(name);
+
+    // Fibonacci
+    int n = 10, a = 0, b = 1;
+    printf("Fibonacci: ");
+    for (int i = 0; i < n; i++) {
+        printf("%d ", a);
+        int tmp = a + b;
+        a = b;
+        b = tmp;
+    }
+    printf("\\n");
+    return 0;
+}
+`,
+  cpp: `#include <iostream>
+#include <vector>
+#include <string>
+using namespace std;
+
+void greet(const string& name) {
+    cout << "Hello, " << name << "! 👋" << endl;
+}
+
+int main() {
+    string name;
+    cout << "Enter your name: ";
+    cin >> name;
+    greet(name);
+
+    // Vector operations
+    vector<int> nums = {1, 2, 3, 4, 5};
+    cout << "Numbers: ";
+    for (int n : nums) cout << n << " ";
+    cout << endl;
+
+    int sum = 0;
+    for (int n : nums) sum += n;
+    cout << "Sum: " << sum << endl;
+    return 0;
+}
+`,
+  java: `import java.util.Scanner;
+import java.util.Arrays;
+
+public class Main {
+    static String greet(String name) {
+        return "Hello, " + name + "! 👋";
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Enter your name: ");
+        String name = sc.nextLine();
+        System.out.println(greet(name));
+
+        int[] nums = {1, 2, 3, 4, 5};
+        System.out.println("Array: " + Arrays.toString(nums));
+
+        int sum = Arrays.stream(nums).sum();
+        System.out.println("Sum: " + sum);
+    }
+}
+`,
+  go: `package main
+
+import (
+    "fmt"
+)
+
+func greet(name string) string {
+    return fmt.Sprintf("Hello, %s! 👋", name)
+}
+
+func fibonacci(n int) []int {
+    fibs := make([]int, n)
+    a, b := 0, 1
+    for i := 0; i < n; i++ {
+        fibs[i] = a
+        a, b = b, a+b
+    }
+    return fibs
+}
+
+func main() {
+    name := "Gopher"
+    fmt.Println(greet(name))
+    fmt.Println("Fibonacci:", fibonacci(10))
+}
+`,
+  rust: `fn greet(name: &str) -> String {
+    format!("Hello, {}! 👋", name)
+}
+
+fn fibonacci(n: u32) -> Vec<u64> {
+    let mut fibs = Vec::new();
+    let (mut a, mut b) = (0u64, 1u64);
+    for _ in 0..n {
+        fibs.push(a);
+        let tmp = a + b;
+        a = b;
+        b = tmp;
+    }
+    fibs
+}
+
+fn main() {
+    let name = "Rustacean";
+    println!("{}", greet(name));
+    println!("Fibonacci: {:?}", fibonacci(10));
+}
+`,
+  php: `<?php
+function greet($name) {
+    return "Hello, $name! 👋";
+}
+
+$name = "World";
+echo greet($name) . "\\n";
+
+// Array operations
+$nums = [1, 2, 3, 4, 5];
+$doubled = array_map(fn($n) => $n * 2, $nums);
+echo "Doubled: " . implode(", ", $doubled) . "\\n";
+
+$sum = array_sum($nums);
+echo "Sum: $sum\\n";
+?>
+`,
+  ruby: `def greet(name)
+  "Hello, #{name}! 👋"
+end
+
+name = "World"
+puts greet(name)
+
+# Array operations
+nums = [1, 2, 3, 4, 5]
+doubled = nums.map { |n| n * 2 }
+puts "Doubled: #{doubled.join(', ')}"
+puts "Sum: #{nums.sum}"
+
+# Fibonacci
+def fib(n)
+  a, b = 0, 1
+  n.times.map { a.tap { a, b = b, a + b } }
+end
+
+puts "Fibonacci: #{fib(10).join(' ')}"
+`,
+  swift: `import Foundation
+
+func greet(_ name: String) -> String {
+    return "Hello, \\(name)! 👋"
+}
+
+let name = "Swift"
+print(greet(name))
+
+let nums = [1, 2, 3, 4, 5]
+let doubled = nums.map { $0 * 2 }
+print("Doubled:", doubled)
+print("Sum:", nums.reduce(0, +))
+`,
+  kotlin: `fun greet(name: String) = "Hello, $name! 👋"
+
+fun fibonacci(n: Int): List<Int> {
+    var a = 0; var b = 1
+    return (1..n).map { a.also { a = b; b += it } }
+}
+
+fun main() {
+    println(greet("Kotlin"))
+    val nums = listOf(1, 2, 3, 4, 5)
+    println("Doubled: \${nums.map { it * 2 }}")
+    println("Sum: \${nums.sum()}")
+    println("Fibonacci: \${fibonacci(10)}")
+}
+`,
+  bash: `#!/bin/bash
+
+greet() {
+  echo "Hello, $1! 👋"
+}
+
+greet "World"
+
+# Arrays
+nums=(1 2 3 4 5)
+echo "Numbers: \${nums[@]}"
+
+# Sum
+sum=0
+for n in "\${nums[@]}"; do
+  ((sum += n))
+done
+echo "Sum: $sum"
+
+# Loop
+echo "Counting:"
+for i in {1..5}; do
+  echo "  $i"
+done
+`
+};
+
+// ─── Snippets per language ────────────────────────────────────────────────
+const snippets = {
+  python: [
+    { icon: '🔄', label: 'for loop', code: 'for i in range(10):\n    print(i)' },
+    { icon: '🔁', label: 'while', code: 'while True:\n    break' },
+    { icon: '📦', label: 'class', code: 'class MyClass:\n    def __init__(self):\n        pass' },
+    { icon: '📖', label: 'open file', code: 'with open("file.txt", "r") as f:\n    content = f.read()' },
+    { icon: '🌐', label: 'requests', code: 'import requests\nres = requests.get("https://api.example.com")\nprint(res.json())' },
+    { icon: '📊', label: 'list comp', code: 'result = [x**2 for x in range(10)]' },
+    { icon: '🔀', label: 'try/except', code: 'try:\n    pass\nexcept Exception as e:\n    print(e)' },
+    { icon: '⚡', label: 'lambda', code: 'fn = lambda x: x * 2\nprint(fn(5))' },
+  ],
+  javascript: [
+    { icon: '🔄', label: 'for loop', code: 'for (let i = 0; i < 10; i++) {\n  console.log(i);\n}' },
+    { icon: '📦', label: 'class', code: 'class MyClass {\n  constructor() {}\n  method() {}\n}' },
+    { icon: '⚡', label: 'arrow fn', code: 'const fn = (x) => x * 2;\nconsole.log(fn(5));' },
+    { icon: '🔀', label: 'try/catch', code: 'try {\n  // code\n} catch (e) {\n  console.error(e);\n}' },
+    { icon: '🌐', label: 'fetch API', code: 'fetch("https://api.example.com")\n  .then(r => r.json())\n  .then(data => console.log(data));' },
+    { icon: '📊', label: 'array map', code: 'const result = [1,2,3].map(x => x * 2);\nconsole.log(result);' },
+  ],
+  c: [
+    { icon: '🔄', label: 'for loop', code: 'for (int i = 0; i < 10; i++) {\n    printf("%d\\n", i);\n}' },
+    { icon: '📦', label: 'struct', code: 'struct Point {\n    int x, y;\n};\nstruct Point p = {1, 2};' },
+    { icon: '🔀', label: 'switch', code: 'switch (x) {\n    case 1: break;\n    default: break;\n}' },
+    { icon: '📖', label: 'file I/O', code: 'FILE *f = fopen("file.txt", "r");\nfclose(f);' },
+  ],
+  cpp: [
+    { icon: '🔄', label: 'for loop', code: 'for (int i = 0; i < 10; i++) {\n    cout << i << endl;\n}' },
+    { icon: '📦', label: 'class', code: 'class MyClass {\npublic:\n    MyClass() {}\n    void method() {}\n};' },
+    { icon: '📊', label: 'vector', code: 'vector<int> v = {1, 2, 3};\nfor (auto x : v) cout << x << " ";' },
+    { icon: '⚡', label: 'lambda', code: 'auto fn = [](int x) { return x * 2; };\ncout << fn(5);' },
+  ],
+};
+
+const fileNames = {
+  python:'main.py', javascript:'main.js', c:'main.c', cpp:'main.cpp',
+  java:'Main.java', go:'main.go', rust:'main.rs', php:'index.php',
+  ruby:'main.rb', swift:'main.swift', kotlin:'main.kt', bash:'script.sh'
+};
+
+const langNames = {
+  python:'Python 3', javascript:'JavaScript', c:'C', cpp:'C++',
+  java:'Java', go:'Go', rust:'Rust', php:'PHP',
+  ruby:'Ruby', swift:'Swift', kotlin:'Kotlin', bash:'Bash'
+};
+
+// ─── Init ────────────────────────────────────────────────────────────────
+window.onload = () => {
+  const editor = document.getElementById('codeEditor');
+  editor.value = templates['python'];
+  onEditorInput();
+  renderSnippets();
+};
+
+// ─── Language Change ──────────────────────────────────────────────────────
+function onLangChange() {
+  const sel = document.getElementById('langSelect');
+  currentLang = sel.value;
+  const editor = document.getElementById('codeEditor');
+  if (templates[currentLang]) editor.value = templates[currentLang];
+  document.getElementById('fileLabel').textContent = fileNames[currentLang] || 'main';
+  document.getElementById('statusLang').textContent = langNames[currentLang] || currentLang;
+  onEditorInput();
+  renderSnippets();
+  clearOutput();
+}
+
+// ─── Editor Events ───────────────────────────────────────────────────────
+function onEditorInput() {
+  updateLineNumbers();
+  updateStatus();
+}
+
+function updateLineNumbers() {
+  const editor = document.getElementById('codeEditor');
+  const lines = editor.value.split('\n').length;
+  const ln = document.getElementById('lineNumbers');
+  ln.textContent = Array.from({length: lines}, (_, i) => i + 1).join('\n');
+}
+
+function syncScroll() {
+  const editor = document.getElementById('codeEditor');
+  const ln = document.getElementById('lineNumbers');
+  ln.scrollTop = editor.scrollTop;
+}
+
+function updateStatus() {
+  const editor = document.getElementById('codeEditor');
+  const val = editor.value;
+  document.getElementById('charCount').textContent = val.length + ' chars';
+  document.getElementById('lineCount').textContent = val.split('\n').length + ' lines';
+}
+
+function updateCursor() {
+  const editor = document.getElementById('codeEditor');
+  const val = editor.value.substring(0, editor.selectionStart);
+  const lines = val.split('\n');
+  const ln = lines.length;
+  const col = lines[lines.length - 1].length + 1;
+  document.getElementById('cursorPos').textContent = `Ln ${ln}, Col ${col}`;
+}
+
+function handleTab(e) {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const editor = document.getElementById('codeEditor');
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    editor.value = editor.value.substring(0, start) + '  ' + editor.value.substring(end);
+    editor.selectionStart = editor.selectionEnd = start + 2;
+    onEditorInput();
+  }
+  // Ctrl+Enter = Run
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault();
+    runCode();
+  }
+}
+
+// ─── Font Size ────────────────────────────────────────────────────────────
+function changeFontSize(delta) {
+  fontSize = Math.min(22, Math.max(10, fontSize + delta));
+  document.getElementById('codeEditor').style.fontSize = fontSize + 'px';
+  document.getElementById('lineNumbers').style.fontSize = fontSize + 'px';
+  document.getElementById('fontSize').textContent = fontSize;
+}
+
+// ─── Theme ────────────────────────────────────────────────────────────────
+function toggleTheme() {
+  isDark = !isDark;
+  document.body.classList.toggle('light', !isDark);
+  const btn = document.getElementById('themeBtn');
+  btn.textContent = isDark ? '🌙 Dark' : '☀️ Light';
+  btn.classList.toggle('active', !isDark);
+}
+
+// ─── Copy / Clear ─────────────────────────────────────────────────────────
+function copyCode() {
+  navigator.clipboard.writeText(document.getElementById('codeEditor').value)
+    .then(() => showToast('Code copied!'));
+}
+function copyOutput() {
+  const box = document.getElementById('outputBox');
+  navigator.clipboard.writeText(box.innerText).then(() => showToast('Output copied!'));
+}
+function clearAll() {
+  document.getElementById('codeEditor').value = '';
+  document.getElementById('stdinArea').value = '';
+  clearOutput();
+  onEditorInput();
+}
+function clearOutput() {
+  document.getElementById('outputBox').innerHTML = '<span class="output-idle">// Output will appear here after running your code...</span>';
+  document.getElementById('execTime').textContent = '';
+}
+
+// ─── Format ──────────────────────────────────────────────────────────────
+function formatCode() {
+  const editor = document.getElementById('codeEditor');
+  let code = editor.value;
+  // Basic: normalize tabs to spaces
+  code = code.replace(/\t/g, '  ');
+  // Remove trailing whitespace per line
+  code = code.split('\n').map(l => l.trimEnd()).join('\n');
+  editor.value = code;
+  onEditorInput();
+  showToast('Formatted!');
+}
+
+// ─── Snippets ────────────────────────────────────────────────────────────
+function renderSnippets() {
+  const list = document.getElementById('snippetsList');
+  const items = snippets[currentLang] || [];
+  list.innerHTML = '';
+  if (!items.length) {
+    list.innerHTML = '<div style="padding:12px;font-size:0.75rem;color:#2a2a2a;">No snippets for this language.</div>';
+    return;
+  }
+  items.forEach(s => {
+    const el = document.createElement('div');
+    el.className = 'snippet-item';
+    el.innerHTML = `<span class="s-icon">${s.icon}</span><span class="s-label">${s.label}</span>`;
+    el.title = s.code;
+    el.onclick = () => insertSnippet(s.code);
+    list.appendChild(el);
+  });
+}
+
+function insertSnippet(code) {
+  const editor = document.getElementById('codeEditor');
+  const start = editor.selectionStart;
+  const before = editor.value.substring(0, start);
+  const after = editor.value.substring(editor.selectionEnd);
+  const nl = before.length && !before.endsWith('\n') ? '\n' : '';
+  editor.value = before + nl + code + '\n' + after;
+  editor.focus();
+  onEditorInput();
+}
+
+// ─── Run Code ─────────────────────────────────────────────────────────────
+// Judge0 CE language IDs: https://ce.judge0.com/languages
+const judge0LangMap = {
+  python:     71,   // Python 3.8.1
+  javascript: 63,   // JavaScript (Node.js 12.14.0)
+  c:          50,   // C (GCC 9.2.0)
+  cpp:        54,   // C++ (GCC 9.2.0)
+  java:       62,   // Java (OpenJDK 13.0.1)
+  go:         60,   // Go (1.13.5)
+  rust:       73,   // Rust (1.40.0)
+  php:        68,   // PHP (7.4.1)
+  ruby:       72,   // Ruby (2.7.0)
+  swift:      83,   // Swift (5.2.3)
+  kotlin:     78,   // Kotlin (1.3.70)
+  bash:       46,   // Bash (5.0.0)
+};
+
+async function runCode() {
+  const code = document.getElementById('codeEditor').value.trim();
+  if (!code) { showOutput('// Nothing to run.', 'idle'); return; }
+
+  const stdin = document.getElementById('stdinArea').value;
+  const runBtn = document.getElementById('runBtn');
+  runBtn.textContent = '⟳ Running';
+  runBtn.classList.add('running');
+  showOutput('<span class="spinner">⟳</span> <span class="output-running">Submitting to Judge0...</span>', '');
+  startTime = Date.now();
+
+  const languageId = judge0LangMap[currentLang];
+  const JUDGE0 = 'https://ce.judge0.com';
+
+  try {
+    // Step 1: Submit code
+    const submitRes = await fetch(`${JUDGE0}/submissions?base64_encoded=false&wait=false`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        source_code: code,
+        language_id: languageId,
+        stdin: stdin
+      })
+    });
+
+    const submitData = await submitRes.json();
+    const token = submitData.token;
+
+    if (!token) {
+      showOutput('❌ Failed to submit code. Try again.', 'error');
+      runBtn.textContent = '▶ Run';
+      runBtn.classList.remove('running');
+      return;
+    }
+
+    // Step 2: Poll for result
+    let result = null;
+    for (let i = 0; i < 20; i++) {
+      await new Promise(r => setTimeout(r, 800));
+      const pollRes = await fetch(`${JUDGE0}/submissions/${token}?base64_encoded=false`, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+      result = await pollRes.json();
+      // status id 1=In Queue, 2=Processing, 3+=Done
+      if (result.status && result.status.id >= 3) break;
+    }
+
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+    document.getElementById('execTime').textContent = `⏱ ${elapsed}s`;
+
+    if (!result) {
+      showOutput('❌ Timed out waiting for result.', 'error');
+    } else {
+      const stdout = result.stdout || '';
+      const stderr = result.stderr || '';
+      const compileErr = result.compile_output || '';
+      const statusId = result.status?.id;
+
+      if (statusId === 3) {
+        // Accepted
+        const out = (stdout + (stderr ? '\n\n⚠ STDERR:\n' + stderr : '')).trim();
+        showOutput(out ? escHtml(out) : '// Program exited with no output.', out ? 'success' : 'idle');
+      } else if (statusId === 6) {
+        // Compilation Error
+        showOutput('❌ Compilation Error:\n\n' + escHtml(compileErr || stderr), 'error');
+      } else if (statusId === 5) {
+        showOutput('⏱ Time Limit Exceeded', 'error');
+      } else if (statusId === 11 || statusId === 12) {
+        showOutput('❌ Runtime Error:\n\n' + escHtml(stderr || stdout), 'error');
+      } else {
+        const msg = result.status?.description || 'Unknown error';
+        const detail = (compileErr || stderr || stdout || '').trim();
+        showOutput(`⚠ ${msg}` + (detail ? '\n\n' + escHtml(detail) : ''), 'error');
+      }
+    }
+  } catch (e) {
+    showOutput('❌ Network error. Check your connection.\n\n' + e.message, 'error');
+  }
+
+  runBtn.textContent = '▶ Run';
+  runBtn.classList.remove('running');
+}
+
+function showOutput(html, type) {
+  const box = document.getElementById('outputBox');
+  box.innerHTML = '';
+  const pre = document.createElement('pre');
+  if (type === 'idle') pre.className = 'output-idle';
+  else if (type === 'success') pre.className = 'output-success';
+  else if (type === 'error') pre.className = 'output-error';
+  pre.innerHTML = html;
+  box.appendChild(pre);
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ─── Toast ────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  let t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#00e676;color:#000;font-family:Syne,sans-serif;font-size:0.8rem;font-weight:700;padding:10px 18px;border-radius:8px;z-index:9999;opacity:0;transition:opacity 0.2s;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  setTimeout(() => t.style.opacity = '0', 1500);
+}
+</script>
+</body>
+</html>
