@@ -1,0 +1,303 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Create Goal — Campus Connect</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{--green:#00e676;--pink:#ff4d9e;--dark:#0a0a0a;--border:#1e1e1e}
+    body{font-family:'DM Sans',sans-serif;background:var(--dark);color:#fff;min-height:100vh}
+    nav{display:flex;justify-content:space-between;align-items:center;padding:14px 40px;background:#0d0d0d;border-bottom:1px solid var(--border)}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;color:var(--green);text-decoration:none}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;text-decoration:none;border:1px solid #2a2a2a;background:transparent;color:rgba(255,255,255,0.5);transition:all 0.2s}
+    .btn:hover{border-color:#444;color:#fff}
+    .main{max-width:760px;margin:0 auto;padding:36px 40px}
+    h1{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;margin-bottom:6px}
+    h1 span{color:var(--green)}
+    .subtitle{color:rgba(255,255,255,0.35);font-size:0.88rem;margin-bottom:28px}
+    .section-label{font-size:11px;letter-spacing:3px;color:#555;text-transform:uppercase;margin:24px 0 14px;display:flex;align-items:center;gap:10px}
+    .section-label::after{content:'';flex:1;height:1px;background:#1e1e1e}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .form-group{margin-bottom:16px}
+    label.fl{font-size:11px;color:#777;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:7px}
+    input[type=text],input[type=date],input[type=url],textarea,select{width:100%;padding:11px 14px;background:#111;border:1px solid #2a2a2a;border-radius:9px;color:#fff;font-family:'DM Sans',sans-serif;font-size:0.9rem;outline:none;transition:border-color 0.2s}
+    input:focus,textarea:focus,select:focus{border-color:var(--green)}
+    select option{background:#1a1a1a}
+    textarea{resize:vertical;min-height:80px}
+    input[type=file]{width:100%;padding:10px 14px;background:#111;border:1px solid #2a2a2a;border-radius:9px;color:#aaa;font-size:0.85rem;cursor:pointer}
+    .type-toggle{display:flex;gap:10px;margin-bottom:20px}
+    .type-btn{flex:1;padding:14px;border-radius:12px;border:2px solid #2a2a2a;background:#111;color:rgba(255,255,255,0.4);cursor:pointer;text-align:center;transition:all 0.2s;font-family:'Syne',sans-serif;font-weight:700;font-size:0.88rem}
+    .type-btn .icon{font-size:1.5rem;display:block;margin-bottom:6px}
+    .type-btn.sel-task{border-color:var(--green);color:var(--green);background:rgba(0,230,118,0.06)}
+    .type-btn.sel-quiz{border-color:var(--pink);color:var(--pink);background:rgba(255,77,158,0.06)}
+    /* Student picker */
+    .student-picker{background:#111;border:1px solid #2a2a2a;border-radius:12px;overflow:hidden}
+    .picker-header{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #1e1e1e;flex-wrap:wrap}
+    .picker-search{flex:1;min-width:140px;padding:7px 12px;background:#0e0e0e;border:1px solid #2a2a2a;border-radius:8px;color:#fff;font-size:0.85rem;outline:none}
+    .picker-search:focus{border-color:var(--green)}
+    .picker-action{padding:5px 12px;border-radius:6px;font-size:0.75rem;font-weight:600;cursor:pointer;border:1px solid #2a2a2a;background:transparent;color:rgba(255,255,255,0.4);transition:all 0.2s}
+    .picker-action:hover{border-color:var(--green);color:var(--green)}
+    .picker-count{font-size:0.75rem;color:var(--green);font-family:'Syne',sans-serif;font-weight:700;padding:5px 10px;background:rgba(0,230,118,0.08);border-radius:6px;white-space:nowrap;margin-left:auto}
+    .picker-list{max-height:230px;overflow-y:auto;padding:6px}
+    .picker-list::-webkit-scrollbar{width:4px}
+    .picker-list::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:2px}
+    .student-item{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:8px;cursor:pointer;transition:background 0.15s;user-select:none}
+    .student-item:hover{background:rgba(255,255,255,0.04)}
+    .student-item.checked{background:rgba(0,230,118,0.05)}
+    .student-item input[type=checkbox]{display:none}
+    .custom-cb{width:18px;height:18px;border-radius:5px;border:2px solid #333;background:#0e0e0e;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0;font-size:0.65rem;color:#000;font-weight:900}
+    .student-item.checked .custom-cb{background:var(--green);border-color:var(--green)}
+    .s-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--pink));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:0.72rem;font-weight:700;color:#000;flex-shrink:0}
+    .s-info{flex:1;min-width:0}
+    .s-name{font-size:0.85rem;font-weight:500}
+    .s-username{font-size:0.72rem;color:rgba(255,255,255,0.3)}
+    .s-branch{font-size:0.68rem;padding:2px 8px;border-radius:50px;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.3);flex-shrink:0}
+    .picker-footer{padding:8px 10px;border-top:1px solid #1a1a1a;font-size:0.78rem;color:rgba(255,255,255,0.3)}
+    .hint{font-size:0.75rem;color:#555;margin-top:6px}
+    /* Quiz */
+    #quizBuilder{display:none}
+    .question-block{background:#111;border:1px solid #222;border-radius:14px;padding:20px;margin-bottom:14px;position:relative}
+    .q-badge{font-family:'Syne',sans-serif;font-size:0.7rem;color:var(--pink);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px}
+    .options-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+    .opt-row{display:flex;align-items:center;gap:8px}
+    .opt-label{font-size:0.75rem;color:rgba(255,255,255,0.4);min-width:16px;font-weight:700}
+    .remove-q{position:absolute;top:14px;right:14px;background:transparent;border:none;color:rgba(255,77,77,0.4);cursor:pointer;font-size:1rem;padding:4px 8px;border-radius:6px;transition:all 0.2s}
+    .remove-q:hover{color:#ff6b6b;background:rgba(255,77,77,0.08)}
+    .add-q-btn{width:100%;padding:12px;border:2px dashed #2a2a2a;border-radius:12px;background:transparent;color:rgba(255,255,255,0.3);cursor:pointer;font-size:0.85rem;transition:all 0.2s;margin-bottom:16px}
+    .add-q-btn:hover{border-color:var(--pink);color:var(--pink)}
+    .correct-sel{background:#0e0e0e;border:1px solid #333;border-radius:6px;color:#aaa;padding:6px 10px;font-size:0.82rem;outline:none;width:auto}
+    .submit-btn{width:100%;padding:14px;background:var(--green);border:none;color:#000;font-family:'Syne',sans-serif;font-weight:800;font-size:0.95rem;border-radius:10px;cursor:pointer;transition:all 0.2s;margin-top:8px}
+    .submit-btn:hover{background:#00ff88;transform:translateY(-1px)}
+    .submit-btn:disabled{opacity:0.6;cursor:not-allowed;transform:none}
+    .msg-error{background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.2);color:#ff6b6b;padding:10px 16px;border-radius:9px;margin-bottom:16px;font-size:0.85rem}
+    @media(max-width:600px){.main{padding:24px 16px}.form-row{grid-template-columns:1fr}.options-grid{grid-template-columns:1fr}.type-toggle{flex-direction:column}}
+  </style>
+</head>
+<body>
+<nav>
+  <a href="{% url 'home' %}" class="nav-logo">Campus Connect</a>
+  <a href="{% url 'goals' %}" class="btn">← Back to Goals</a>
+</nav>
+
+<div class="main">
+  <h1>Create <span>Goal</span></h1>
+  <p class="subtitle">Assign a task or quiz to your students with deadlines and resources.</p>
+
+  {% if messages %}{% for m in messages %}<div class="msg-error">{{ m }}</div>{% endfor %}{% endif %}
+
+  <form method="POST" enctype="multipart/form-data" id="goalForm">
+    {% csrf_token %}
+    <input type="hidden" name="goal_type" id="goalTypeInput" value="task"/>
+
+    <p class="section-label">Goal Type</p>
+    <div class="type-toggle">
+      <button type="button" class="type-btn sel-task" id="btnTask" onclick="setType('task')">
+        <span class="icon">📋</span>Task / Assignment
+      </button>
+      <button type="button" class="type-btn" id="btnQuiz" onclick="setType('quiz')">
+        <span class="icon">🧩</span>Quiz
+      </button>
+    </div>
+
+    <p class="section-label">Goal Details</p>
+    <div class="form-group">
+      <label class="fl">Title *</label>
+      <input type="text" name="title" placeholder="e.g. Implement Linked List in C++" required/>
+    </div>
+    <div class="form-group">
+      <label class="fl">Description</label>
+      <textarea name="description" placeholder="Describe what students need to do..."></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="fl">Start Date *</label>
+        <input type="date" name="start_date" required/>
+      </div>
+      <div class="form-group">
+        <label class="fl">Due Date *</label>
+        <input type="date" name="due_date" required/>
+      </div>
+    </div>
+
+    <p class="section-label">Resources (Optional)</p>
+    <div class="form-group">
+      <label class="fl">Resource Link</label>
+      <input type="url" name="resource_link" placeholder="https://docs.example.com/reference"/>
+    </div>
+    <div class="form-group">
+      <label class="fl">Resource File</label>
+      <input type="file" name="resource_file" accept=".pdf,.doc,.docx,.ppt,.pptx,.txt"/>
+    </div>
+
+    <p class="section-label">Assign To Students</p>
+    <div class="form-group">
+      <div class="student-picker">
+        <div class="picker-header">
+          <input type="text" class="picker-search" placeholder="🔍 Search name or username..." oninput="filterStudents(this.value)"/>
+          <button type="button" class="picker-action" onclick="selectAllStudents()">Select All</button>
+          <button type="button" class="picker-action" onclick="clearStudents()">Clear</button>
+          <span class="picker-count" id="pickerCount">0 selected</span>
+        </div>
+        <div class="picker-list" id="studentList">
+          {% for student in students %}
+          <div class="student-item" id="si_{{ student.id }}" onclick="toggleStudent(event, {{ student.id }})">
+            <input type="checkbox" name="students" value="{{ student.id }}" id="cb_{{ student.id }}"/>
+            <div class="custom-cb" id="ccb_{{ student.id }}"></div>
+            <div class="s-avatar">{{ student.first_name.0|default:student.username.0|upper }}</div>
+            <div class="s-info">
+              <div class="s-name">{{ student.get_full_name|default:student.username }}</div>
+              <div class="s-username">@{{ student.username }}</div>
+            </div>
+            {% if student.profile.branch %}<span class="s-branch">{{ student.profile.branch|upper }}</span>{% endif %}
+          </div>
+          {% empty %}
+          <div style="text-align:center;padding:24px;color:rgba(255,255,255,0.2);font-size:0.85rem">No students registered yet.</div>
+          {% endfor %}
+        </div>
+        <div class="picker-footer" id="pickerFooter">Leave all unselected to assign to every student automatically.</div>
+      </div>
+      <p class="hint">Click a student to select. Use Search to filter. Leave all unselected = assign to ALL.</p>
+    </div>
+
+    <!-- QUIZ BUILDER -->
+    <div id="quizBuilder">
+      <p class="section-label" style="color:var(--pink)">Quiz Questions</p>
+      <div id="questionsContainer"></div>
+      <button type="button" class="add-q-btn" onclick="addQuestion()">＋ Add Question</button>
+    </div>
+
+    <button type="submit" class="submit-btn" id="submitBtn">🎯 Create &amp; Assign Goal</button>
+  </form>
+</div>
+
+<script>
+let questionCount = 0;
+const selectedIds = new Set();
+
+function setType(type) {
+  document.getElementById('goalTypeInput').value = type;
+  document.getElementById('btnTask').className = 'type-btn' + (type === 'task' ? ' sel-task' : '');
+  document.getElementById('btnQuiz').className = 'type-btn' + (type === 'quiz' ? ' sel-quiz' : '');
+  const builder = document.getElementById('quizBuilder');
+  builder.style.display = type === 'quiz' ? 'block' : 'none';
+  if (type === 'quiz' && questionCount === 0) addQuestion();
+}
+
+function toggleStudent(e, id) {
+  e.preventDefault();
+  const cb = document.getElementById('cb_' + id);
+  const item = document.getElementById('si_' + id);
+  const ccb = document.getElementById('ccb_' + id);
+  cb.checked = !cb.checked;
+  if (cb.checked) {
+    selectedIds.add(id);
+    item.classList.add('checked');
+    ccb.textContent = '✓';
+  } else {
+    selectedIds.delete(id);
+    item.classList.remove('checked');
+    ccb.textContent = '';
+  }
+  updateCount();
+}
+
+function updateCount() {
+  const n = selectedIds.size;
+  document.getElementById('pickerCount').textContent = n + ' selected';
+  document.getElementById('pickerFooter').textContent = n === 0
+    ? 'Leave all unselected to assign to every student automatically.'
+    : n + ' student(s) will be assigned this goal.';
+}
+
+function filterStudents(q) {
+  q = q.toLowerCase();
+  document.querySelectorAll('.student-item').forEach(item => {
+    item.style.display = item.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+function selectAllStudents() {
+  document.querySelectorAll('.student-item').forEach(item => {
+    if (item.style.display !== 'none') {
+      const cb = item.querySelector('input[type=checkbox]');
+      const ccb = item.querySelector('.custom-cb');
+      cb.checked = true;
+      selectedIds.add(parseInt(cb.value));
+      item.classList.add('checked');
+      ccb.textContent = '✓';
+    }
+  });
+  updateCount();
+}
+
+function clearStudents() {
+  document.querySelectorAll('.student-item').forEach(item => {
+    const cb = item.querySelector('input[type=checkbox]');
+    const ccb = item.querySelector('.custom-cb');
+    cb.checked = false;
+    item.classList.remove('checked');
+    ccb.textContent = '';
+  });
+  selectedIds.clear();
+  updateCount();
+}
+
+function addQuestion() {
+  questionCount++;
+  const i = questionCount;
+  const block = document.createElement('div');
+  block.className = 'question-block';
+  block.id = 'qblock_' + i;
+  block.innerHTML = `
+    <div class="q-badge">Question ${i}</div>
+    <button type="button" class="remove-q" onclick="removeQ(${i})">✕</button>
+    <div class="form-group" style="margin-bottom:10px">
+      <label class="fl">Type</label>
+      <select name="q_type_${i}" onchange="toggleOpts(${i},this.value)">
+        <option value="mcq">Multiple Choice (MCQ)</option>
+        <option value="short">Short Answer</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="fl">Question *</label>
+      <textarea name="q_text_${i}" rows="2" placeholder="Enter question..."></textarea>
+    </div>
+    <div id="opts_${i}">
+      <div class="options-grid">
+        <div class="opt-row"><span class="opt-label">A</span><input type="text" name="q_a_${i}" placeholder="Option A"/></div>
+        <div class="opt-row"><span class="opt-label">B</span><input type="text" name="q_b_${i}" placeholder="Option B"/></div>
+        <div class="opt-row"><span class="opt-label">C</span><input type="text" name="q_c_${i}" placeholder="Option C"/></div>
+        <div class="opt-row"><span class="opt-label">D</span><input type="text" name="q_d_${i}" placeholder="Option D"/></div>
+      </div>
+      <div style="margin-top:12px;display:flex;align-items:center;gap:10px">
+        <span style="font-size:0.78rem;color:rgba(255,255,255,0.4)">Correct Answer:</span>
+        <select name="q_correct_${i}" class="correct-sel">
+          <option value="A">A</option><option value="B">B</option>
+          <option value="C">C</option><option value="D">D</option>
+        </select>
+      </div>
+    </div>`;
+  document.getElementById('questionsContainer').appendChild(block);
+  block.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function toggleOpts(i, type) {
+  document.getElementById('opts_' + i).style.display = type === 'mcq' ? 'block' : 'none';
+}
+
+function removeQ(i) {
+  const b = document.getElementById('qblock_' + i);
+  if (b) b.remove();
+}
+
+document.getElementById('goalForm').addEventListener('submit', function() {
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Creating...';
+});
+</script>
+</body>
+</html>

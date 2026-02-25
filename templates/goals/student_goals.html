@@ -1,0 +1,135 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>My Goals — Campus Connect</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{--green:#00e676;--pink:#ff4d9e;--dark:#0a0a0a;--border:#1e1e1e}
+    body{font-family:'DM Sans',sans-serif;background:var(--dark);color:#fff;min-height:100vh}
+    nav{display:flex;justify-content:space-between;align-items:center;padding:14px 40px;background:#0d0d0d;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;color:var(--green);text-decoration:none}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;text-decoration:none;border:1px solid #2a2a2a;background:transparent;color:rgba(255,255,255,0.5);transition:all 0.2s}
+    .btn:hover{border-color:#444;color:#fff}
+    .page-header{padding:36px 40px 24px;border-bottom:1px solid var(--border)}
+    .page-header h1{font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800}
+    .page-header h1 span{color:var(--green)}
+    .page-header p{color:rgba(255,255,255,0.35);margin-top:6px;font-size:0.88rem}
+    .content{max-width:900px;margin:0 auto;padding:32px 40px}
+    .filters{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+    .filter-btn{padding:6px 16px;border-radius:50px;font-size:0.78rem;font-weight:600;cursor:pointer;border:1px solid #2a2a2a;background:transparent;color:rgba(255,255,255,0.4);transition:all 0.2s}
+    .filter-btn.active,.filter-btn:hover{border-color:var(--green);color:var(--green);background:rgba(0,230,118,0.06)}
+    .goals-list{display:flex;flex-direction:column;gap:14px}
+    .goal-card{background:#111;border:1px solid var(--border);border-radius:16px;padding:22px 24px;display:flex;align-items:flex-start;gap:20px;transition:all 0.2s;text-decoration:none;color:inherit}
+    .goal-card:hover{border-color:#2a2a2a;transform:translateY(-2px)}
+    .goal-card.submitted{border-left:3px solid var(--green)}
+    .goal-card.overdue{border-left:3px solid #ff6b6b}
+    .goal-card.pending{border-left:3px solid #ffc107}
+    .goal-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+    .icon-task{background:rgba(0,230,118,0.1)}
+    .icon-quiz{background:rgba(255,77,158,0.1)}
+    .goal-body{flex:1;min-width:0}
+    .goal-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:4px}
+    .goal-meta{font-size:0.78rem;color:rgba(255,255,255,0.35);display:flex;gap:14px;flex-wrap:wrap;margin-top:6px}
+    .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:50px;font-size:0.68rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase}
+    .badge-task{background:rgba(0,230,118,0.1);color:var(--green);border:1px solid rgba(0,230,118,0.2)}
+    .badge-quiz{background:rgba(255,77,158,0.1);color:var(--pink);border:1px solid rgba(255,77,158,0.2)}
+    .badge-submitted{background:rgba(0,230,118,0.1);color:var(--green);border:1px solid rgba(0,230,118,0.2)}
+    .badge-pending{background:rgba(255,193,7,0.1);color:#ffc107;border:1px solid rgba(255,193,7,0.2)}
+    .badge-overdue{background:rgba(255,107,107,0.1);color:#ff6b6b;border:1px solid rgba(255,107,107,0.2)}
+    .badge-approved{background:rgba(165,214,167,0.1);color:#a5d6a7;border:1px solid rgba(165,214,167,0.2)}
+    .score-chip{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:4px 12px;font-size:0.78rem;font-family:'Syne',sans-serif;font-weight:700;color:var(--green)}
+    .empty{text-align:center;padding:60px 20px;color:rgba(255,255,255,0.2)}
+    .empty .e-icon{font-size:3rem;margin-bottom:12px}
+    .days-left{font-size:0.75rem;padding:3px 8px;border-radius:6px;background:#1a1a1a;color:rgba(255,255,255,0.4)}
+    .days-left.urgent{background:rgba(255,107,107,0.1);color:#ff6b6b}
+    @media(max-width:700px){.content{padding:20px 16px}.goal-card{flex-wrap:wrap}}
+  </style>
+</head>
+<body>
+<nav>
+  <a href="{% url 'home' %}" class="nav-logo">Campus Connect</a>
+  <a href="{% url 'study' %}" class="btn">← Study Hub</a>
+</nav>
+
+<div class="page-header">
+  <h1>🎯 <span>My Goals</span></h1>
+  <p>Track your assigned tasks and quizzes. Submit your work before the deadline.</p>
+</div>
+
+<div class="content">
+  <!-- Filter tabs -->
+  <div class="filters">
+    <button class="filter-btn active" onclick="filterGoals('all', this)">All ({{ annotated|length }})</button>
+    <button class="filter-btn" onclick="filterGoals('pending', this)">⏳ Pending</button>
+    <button class="filter-btn" onclick="filterGoals('submitted', this)">✅ Submitted</button>
+    <button class="filter-btn" onclick="filterGoals('overdue', this)">🔴 Overdue</button>
+    <button class="filter-btn" onclick="filterGoals('quiz', this)">🧩 Quizzes</button>
+  </div>
+
+  <div class="goals-list" id="goalsList">
+    {% for item in annotated %}
+    {% with goal=item.goal sub=item.submission %}
+    <a href="{% url 'goal_detail' goal.id %}"
+       class="goal-card {% if sub %}submitted{% elif goal.status == 'overdue' %}overdue{% else %}pending{% endif %}"
+       data-type="{{ goal.goal_type }}"
+       data-status="{% if sub %}submitted{% elif goal.status == 'overdue' %}overdue{% else %}pending{% endif %}">
+      <div class="goal-icon {% if goal.goal_type == 'quiz' %}icon-quiz{% else %}icon-task{% endif %}">
+        {% if goal.goal_type == 'quiz' %}🧩{% else %}📋{% endif %}
+      </div>
+      <div class="goal-body">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span class="goal-title">{{ goal.title }}</span>
+          <span class="badge {% if goal.goal_type == 'quiz' %}badge-quiz{% else %}badge-task{% endif %}">{{ goal.goal_type }}</span>
+          {% if sub %}
+            <span class="badge badge-{{ sub.status }}">{{ sub.status }}</span>
+          {% elif goal.status == 'overdue' %}
+            <span class="badge badge-overdue">Overdue</span>
+          {% else %}
+            <span class="badge badge-pending">Pending</span>
+          {% endif %}
+        </div>
+        {% if goal.description %}<p style="font-size:0.82rem;color:rgba(255,255,255,0.35);margin-top:4px">{{ goal.description|truncatechars:90 }}</p>{% endif %}
+        <div class="goal-meta">
+          <span>📅 Due {{ goal.due_date }}</span>
+          <span>👤 by {{ goal.assigned_by.get_full_name|default:goal.assigned_by.username }}</span>
+          {% if goal.resource_link or goal.resource_file %}<span>🔗 Resource</span>{% endif %}
+        </div>
+        {% if sub and sub.quiz_score is not None %}
+        <div style="margin-top:10px">
+          <span class="score-chip">🏆 Score: {{ sub.quiz_score }}/{{ sub.quiz_total }}</span>
+        </div>
+        {% endif %}
+        {% if sub and sub.feedback %}
+        <div style="margin-top:8px;font-size:0.78rem;color:rgba(255,255,255,0.4);background:#161616;padding:8px 12px;border-radius:8px;border-left:2px solid var(--green)">
+          💬 {{ sub.feedback|truncatechars:80 }}
+        </div>
+        {% endif %}
+      </div>
+    </a>
+    {% endwith %}
+    {% empty %}
+    <div class="empty">
+      <div class="e-icon">🎯</div>
+      <p>No goals assigned yet. Check back later!</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+function filterGoals(filter, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.goal-card').forEach(card => {
+    if (filter === 'all') { card.style.display = ''; return; }
+    if (filter === 'quiz') { card.style.display = card.dataset.type === 'quiz' ? '' : 'none'; return; }
+    card.style.display = card.dataset.status === filter ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>

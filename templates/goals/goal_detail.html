@@ -1,0 +1,184 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>{{ goal.title }} — Campus Connect</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{--green:#00e676;--pink:#ff4d9e;--dark:#0a0a0a;--border:#1e1e1e}
+    body{font-family:'DM Sans',sans-serif;background:var(--dark);color:#fff;min-height:100vh}
+    nav{display:flex;justify-content:space-between;align-items:center;padding:14px 40px;background:#0d0d0d;border-bottom:1px solid var(--border)}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;color:var(--green);text-decoration:none}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;text-decoration:none;border:1px solid #2a2a2a;background:transparent;color:rgba(255,255,255,0.5);transition:all 0.2s}
+    .btn:hover{border-color:#444;color:#fff}
+    .main{max-width:760px;margin:0 auto;padding:36px 40px}
+    .goal-header{background:#111;border:1px solid var(--border);border-radius:18px;padding:28px;margin-bottom:24px}
+    .goal-title{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;margin-bottom:10px}
+    .badge{display:inline-flex;align-items:center;padding:4px 12px;border-radius:50px;font-size:0.7rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase}
+    .badge-task{background:rgba(0,230,118,0.1);color:var(--green);border:1px solid rgba(0,230,118,0.2)}
+    .badge-quiz{background:rgba(255,77,158,0.1);color:var(--pink);border:1px solid rgba(255,77,158,0.2)}
+    .meta-row{display:flex;gap:20px;flex-wrap:wrap;margin-top:14px;font-size:0.82rem;color:rgba(255,255,255,0.35)}
+    .meta-row span{display:flex;align-items:center;gap:5px}
+    .resource-box{margin-top:14px;background:#161616;border:1px solid #2a2a2a;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px}
+    .resource-box a{color:var(--green);text-decoration:none;font-size:0.85rem}
+    .resource-box a:hover{text-decoration:underline}
+    .section-label{font-size:11px;letter-spacing:3px;color:#555;text-transform:uppercase;margin:24px 0 14px;display:flex;align-items:center;gap:10px}
+    .section-label::after{content:'';flex:1;height:1px;background:#1e1e1e}
+    /* Submission form */
+    .submit-card{background:#111;border:1px solid var(--border);border-radius:18px;padding:28px}
+    .form-group{margin-bottom:16px}
+    label{font-size:11px;color:#777;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:7px}
+    textarea,input[type=file]{width:100%;padding:11px 14px;background:#0e0e0e;border:1px solid #2a2a2a;border-radius:9px;color:#fff;font-family:'DM Sans',sans-serif;font-size:0.9rem;outline:none;transition:border-color 0.2s}
+    textarea:focus{border-color:var(--green)}
+    textarea{resize:vertical;min-height:90px}
+    input[type=file]{color:#aaa;cursor:pointer}
+    .submit-btn{width:100%;padding:14px;background:var(--green);border:none;color:#000;font-family:'Syne',sans-serif;font-weight:800;font-size:0.95rem;border-radius:10px;cursor:pointer;transition:all 0.2s}
+    .submit-btn:hover{background:#00ff88;transform:translateY(-1px)}
+    /* Submitted state */
+    .done-card{background:#111;border:1px solid rgba(0,230,118,0.2);border-radius:18px;padding:28px;text-align:center}
+    .done-icon{font-size:2.5rem;margin-bottom:12px}
+    .done-title{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;color:var(--green)}
+    .score-big{font-family:'Syne',sans-serif;font-size:2.5rem;font-weight:800;color:var(--green);margin:16px 0 4px}
+    .feedback-box{background:#161616;border-left:3px solid var(--green);border-radius:0 10px 10px 0;padding:14px 16px;margin-top:16px;text-align:left}
+    .feedback-label{font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:6px}
+    /* Quiz questions */
+    .quiz-form{display:flex;flex-direction:column;gap:16px}
+    .q-block{background:#0e0e0e;border:1px solid #222;border-radius:14px;padding:20px}
+    .q-num-label{font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--pink);margin-bottom:8px}
+    .q-text{font-size:0.95rem;font-weight:500;margin-bottom:14px;line-height:1.5}
+    .options-list{display:flex;flex-direction:column;gap:8px}
+    .option-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border:1px solid #2a2a2a;border-radius:9px;cursor:pointer;transition:all 0.2s}
+    .option-item:hover{border-color:#444;background:#161616}
+    .option-item input[type=radio]{accent-color:var(--pink)}
+    .option-letter{font-family:'Syne',sans-serif;font-weight:700;font-size:0.78rem;color:rgba(255,255,255,0.4);min-width:20px}
+    .short-input{width:100%;padding:10px 14px;background:#111;border:1px solid #2a2a2a;border-radius:9px;color:#fff;font-size:0.9rem;outline:none}
+    .short-input:focus{border-color:var(--pink)}
+    .msg.success{background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.2);color:var(--green);padding:10px 16px;border-radius:9px;margin-bottom:16px;font-size:0.85rem}
+    @media(max-width:600px){.main{padding:20px 16px}}
+  </style>
+</head>
+<body>
+<nav>
+  <a href="{% url 'home' %}" class="nav-logo">Campus Connect</a>
+  <a href="{% url 'goals' %}" class="btn">← My Goals</a>
+</nav>
+
+<div class="main">
+  {% if messages %}{% for m in messages %}
+  <div class="msg success">{{ m }}</div>
+  {% endfor %}{% endif %}
+
+  <!-- Goal Info -->
+  <div class="goal-header">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <span class="badge {% if goal.goal_type == 'quiz' %}badge-quiz{% else %}badge-task{% endif %}">
+        {% if goal.goal_type == 'quiz' %}🧩 Quiz{% else %}📋 Task{% endif %}
+      </span>
+    </div>
+    <div class="goal-title">{{ goal.title }}</div>
+    {% if goal.description %}<p style="color:rgba(255,255,255,0.45);font-size:0.9rem;line-height:1.6;margin-top:8px">{{ goal.description }}</p>{% endif %}
+    <div class="meta-row">
+      <span>📅 Start: {{ goal.start_date }}</span>
+      <span>⏰ Due: {{ goal.due_date }}</span>
+      <span>👤 Assigned by: {{ goal.assigned_by.get_full_name|default:goal.assigned_by.username }}</span>
+    </div>
+    {% if goal.resource_link or goal.resource_file %}
+    <div class="resource-box">
+      <span style="font-size:1.2rem">🔗</span>
+      <div>
+        <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.3);margin-bottom:3px">Resource</div>
+        {% if goal.resource_link %}<a href="{{ goal.resource_link }}" target="_blank">{{ goal.resource_link }}</a>{% endif %}
+        {% if goal.resource_file %}<a href="{{ goal.resource_file.url }}" target="_blank">📎 Download File</a>{% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ── ALREADY SUBMITTED ── -->
+  {% if submission %}
+  <div class="done-card">
+    <div class="done-icon">✅</div>
+    <div class="done-title">Submitted!</div>
+    <p style="color:rgba(255,255,255,0.35);font-size:0.85rem;margin-top:6px">
+      Submitted on {{ submission.submitted_at|date:"d M Y, H:i" }}
+      &nbsp;·&nbsp; Status: <strong style="color:var(--green)">{{ submission.status|capfirst }}</strong>
+    </p>
+
+    {% if submission.quiz_score is not None %}
+    <div class="score-big">{{ submission.quiz_score }} / {{ submission.quiz_total }}</div>
+    <p style="color:rgba(255,255,255,0.35);font-size:0.82rem">Quiz Score</p>
+    {% endif %}
+
+    {% if submission.file %}
+    <div style="margin-top:14px">
+      <a href="{{ submission.file.url }}" target="_blank" class="btn" style="border-color:var(--green);color:var(--green);margin:0 auto">📎 View Submission</a>
+    </div>
+    {% endif %}
+
+    {% if submission.feedback %}
+    <div class="feedback-box">
+      <div class="feedback-label">Teacher Feedback</div>
+      <p style="font-size:0.88rem;color:rgba(255,255,255,0.7);line-height:1.6">{{ submission.feedback }}</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ── NOT SUBMITTED YET ── -->
+  {% else %}
+
+  {% if goal.goal_type == 'quiz' %}
+  <!-- QUIZ FORM -->
+  <p class="section-label">Answer All Questions</p>
+  <form method="POST">
+    {% csrf_token %}
+    <div class="quiz-form">
+      {% for q in questions %}
+      <div class="q-block">
+        <div class="q-num-label">Question {{ forloop.counter }}</div>
+        <div class="q-text">{{ q.question }}</div>
+        {% if q.qtype == 'mcq' %}
+        <div class="options-list">
+          {% if q.option_a %}<label class="option-item"><input type="radio" name="answer_{{ q.id }}" value="A" required/><span class="option-letter">A</span><span>{{ q.option_a }}</span></label>{% endif %}
+          {% if q.option_b %}<label class="option-item"><input type="radio" name="answer_{{ q.id }}" value="B"/><span class="option-letter">B</span><span>{{ q.option_b }}</span></label>{% endif %}
+          {% if q.option_c %}<label class="option-item"><input type="radio" name="answer_{{ q.id }}" value="C"/><span class="option-letter">C</span><span>{{ q.option_c }}</span></label>{% endif %}
+          {% if q.option_d %}<label class="option-item"><input type="radio" name="answer_{{ q.id }}" value="D"/><span class="option-letter">D</span><span>{{ q.option_d }}</span></label>{% endif %}
+        </div>
+        {% else %}
+        <input type="text" name="answer_{{ q.id }}" class="short-input" placeholder="Type your answer..." required/>
+        {% endif %}
+      </div>
+      {% empty %}
+      <p style="color:rgba(255,255,255,0.3);font-size:0.85rem">No questions added to this quiz yet.</p>
+      {% endfor %}
+    </div>
+    <div style="margin-top:20px">
+      <button type="submit" class="submit-btn">🚀 Submit Quiz</button>
+    </div>
+  </form>
+
+  {% else %}
+  <!-- TASK SUBMISSION FORM -->
+  <p class="section-label">Submit Your Work</p>
+  <div class="submit-card">
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="form-group">
+        <label>Upload File (PDF, Word, ZIP, etc.)</label>
+        <input type="file" name="submission_file" accept=".pdf,.doc,.docx,.zip,.txt,.py,.java,.cpp,.c"/>
+      </div>
+      <div class="form-group">
+        <label>Note / Comment (optional)</label>
+        <textarea name="note" placeholder="Add a note about your submission..."></textarea>
+      </div>
+      <button type="submit" class="submit-btn">📤 Submit Work</button>
+    </form>
+  </div>
+  {% endif %}
+
+  {% endif %}
+</div>
+</body>
+</html>
