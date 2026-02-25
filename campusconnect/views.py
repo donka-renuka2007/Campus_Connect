@@ -303,8 +303,7 @@ def edit_profile(request):
         'branches': BRANCH_CHOICES,
         'years':    YEAR_CHOICES,
     })
-    from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
+ 
 
 
 def compiler(request):
