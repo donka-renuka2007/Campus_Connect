@@ -27,4 +27,7 @@ urlpatterns = [
     path('study/goals/<int:goal_id>/delete/',   views.delete_goal,       name='delete_goal'),
     path('study/chatbot/', views.chatbot, name='chatbot'),
     path('study/chatbot/api/', views.chatbot_api, name='chatbot_api'),
+    path('library/', views.library, name='library'),
+    path('library/mark-returned/<int:record_id>/', views.mark_returned, name='mark_returned'),
+    path('library/penalty/<int:record_id>/', views.penalty_api, name='penalty_api'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
