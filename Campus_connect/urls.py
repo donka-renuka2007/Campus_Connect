@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.urls import path
+from django.urls import path,include
 from django.conf import settings
 from django.conf.urls.static import static
 from campusconnect import views
@@ -18,4 +18,5 @@ urlpatterns = [
     path('announcements/delete/<int:pk>/',      views.delete_announcement,name='delete_announcement'),
     path('profile/',                            views.profile_view,       name='profile'),
     path('profile/edit/',                       views.edit_profile,       name='edit_profile'),
+    path('resources/', include('resources.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
