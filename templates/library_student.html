@@ -1,0 +1,341 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Library — Campus Connect</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --green: #00e676; --pink: #ff4d9e; --dark: #0a0a0a; --purple: #ce93d8; }
+
+        body { font-family: 'DM Sans', sans-serif; background: var(--dark); color: #fff; min-height: 100vh; }
+
+        /* NAVBAR */
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 14px 40px; background: #0d0d0d; border-bottom: 1px solid #1e1e1e; position: sticky; top: 0; z-index: 100; }
+        .nav-logo img { width: 85px; }
+        .nav-center { display: flex; gap: 6px; }
+        .nav-link { text-decoration: none; font-family: 'Syne', sans-serif; font-size: 0.76rem; letter-spacing: 0.08em; padding: 8px 18px; border-radius: 50px; color: rgba(255,255,255,0.45); border: 1px solid transparent; transition: all 0.2s; }
+        .nav-link:hover { color: #fff; background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
+        .nav-link.active { color: var(--green); border-color: rgba(0,230,118,0.25); background: rgba(0,230,118,0.06); }
+        .nav-right { display: flex; align-items: center; gap: 10px; position: relative; }
+        .profile-btn { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 50px; padding: 6px 14px 6px 6px; cursor: pointer; transition: all 0.2s; color: #fff; text-decoration: none; }
+        .profile-btn:hover { border-color: var(--green); }
+        .avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--green), var(--pink)); display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-size: 0.72rem; font-weight: 700; color: #000; overflow: hidden; }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-name { font-size: 0.8rem; font-weight: 500; }
+        .dropdown { position: absolute; top: calc(100% + 10px); right: 0; background: #161616; border: 1px solid #2a2a2a; border-radius: 14px; padding: 8px; min-width: 180px; display: none; z-index: 200; box-shadow: 0 16px 40px rgba(0,0,0,0.5); }
+        .dropdown.open { display: block; animation: fadeUp 0.2s ease; }
+        .dropdown a { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; text-decoration: none; color: rgba(255,255,255,0.6); font-size: 0.85rem; transition: all 0.15s; }
+        .dropdown a:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .dropdown hr { border: none; border-top: 1px solid #222; margin: 6px 0; }
+        .dropdown a.danger:hover { background: rgba(255,77,77,0.08); color: #ff6b6b; }
+
+        /* PAGE */
+        .page-header { padding: 36px 40px 24px; border-bottom: 1px solid #1a1a1a; display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+        .page-header h1 { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; }
+        .page-header h1 span { color: var(--purple); }
+        .page-header p { color: rgba(255,255,255,0.35); margin-top: 6px; font-size: 0.9rem; }
+
+        /* SUMMARY STRIP */
+        .summary-strip { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
+        .summary-pill { display: flex; align-items: center; gap: 7px; background: #111; border: 1px solid #1e1e1e; border-radius: 50px; padding: 7px 16px; font-size: 0.8rem; }
+        .summary-pill .pill-val { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; }
+        .pill-green { color: var(--green); }
+        .pill-red { color: #ff6b6b; }
+        .pill-purple { color: var(--purple); }
+
+        .content { max-width: 860px; margin: 0 auto; padding: 36px 40px; }
+
+        /* BOOK CARD */
+        .book-card {
+            background: #111; border: 1px solid #1e1e1e; border-radius: 20px;
+            padding: 24px 26px; margin-bottom: 16px; position: relative;
+            overflow: hidden; transition: border-color 0.2s; animation: fadeUp 0.4s ease;
+        }
+        .book-card::before {
+            content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+            background: var(--card-color, var(--purple));
+            border-radius: 20px 0 0 20px;
+        }
+        .book-card:hover { border-color: #2a2a2a; }
+        .book-card.overdue { --card-color: #ff6b6b; }
+        .book-card.returned { --card-color: var(--green); opacity: 0.6; }
+        .book-card.ontime { --card-color: var(--green); }
+
+        .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+        .book-title { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+        .book-no { font-size: 0.78rem; color: rgba(255,255,255,0.3); }
+
+        .status-badge { flex-shrink: 0; padding: 6px 14px; border-radius: 50px; font-size: 0.75rem; font-family: 'Syne', sans-serif; font-weight: 700; letter-spacing: 0.04em; }
+        .badge-overdue { background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.2); color: #ff6b6b; }
+        .badge-ontime { background: rgba(0,230,118,0.08); border: 1px solid rgba(0,230,118,0.15); color: var(--green); }
+        .badge-returned { background: rgba(0,230,118,0.08); border: 1px solid rgba(0,230,118,0.15); color: var(--green); }
+
+        .card-meta { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 14px; }
+        .meta-item { font-size: 0.8rem; color: rgba(255,255,255,0.35); }
+        .meta-item strong { color: rgba(255,255,255,0.7); display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+
+        /* PENALTY BOX */
+        .penalty-box {
+            margin-top: 18px; padding: 16px 18px; background: rgba(255,107,107,0.05);
+            border: 1px solid rgba(255,107,107,0.15); border-radius: 12px;
+            display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+        }
+        .penalty-box.ticking { animation: penaltyPulse 2s infinite; }
+
+        @keyframes penaltyPulse {
+            0%, 100% { border-color: rgba(255,107,107,0.15); }
+            50% { border-color: rgba(255,107,107,0.4); background: rgba(255,107,107,0.08); }
+        }
+
+        .penalty-left { display: flex; flex-direction: column; gap: 3px; }
+        .penalty-label { font-size: 0.72rem; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.06em; }
+        .penalty-amount { font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 800; color: #ff6b6b; }
+        .penalty-amount .paise { font-size: 1rem; opacity: 0.7; }
+
+        .penalty-right { font-size: 0.78rem; color: rgba(255,255,255,0.35); text-align: right; }
+        .penalty-right strong { display: block; font-size: 0.85rem; color: #ff6b6b; }
+
+        /* Returned box */
+        .returned-box {
+            margin-top: 18px; padding: 14px 18px; background: rgba(0,230,118,0.04);
+            border: 1px solid rgba(0,230,118,0.12); border-radius: 12px;
+            display: flex; align-items: center; gap: 10px; font-size: 0.84rem; color: var(--green);
+        }
+
+        /* ISSUER */
+        .issuer-chip { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; background: rgba(255,255,255,0.04); border: 1px solid #1e1e1e; border-radius: 50px; padding: 4px 12px 4px 6px; font-size: 0.74rem; color: rgba(255,255,255,0.4); }
+        .issuer-av { width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--pink)); display: flex; align-items: center; justify-content: center; font-size: 0.55rem; font-weight: 700; color: #000; }
+
+        .empty-state { text-align: center; padding: 80px 20px; color: rgba(255,255,255,0.2); }
+        .empty-state .e-icon { font-size: 3rem; margin-bottom: 14px; }
+        .empty-state p { font-size: 0.9rem; }
+
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 560px) {
+            nav { padding: 12px 18px; }
+            .nav-center { display: none; }
+            .content { padding: 20px 16px; }
+            .page-header { padding: 24px 16px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+    <div class="nav-logo"><a href="{% url 'home' %}"><img src="{% static 'images/logo.png' %}" alt="Campus Connect" /></a></div>
+    <div class="nav-center">
+        <a href="{% url 'announcements' %}" class="nav-link">📢 Announcements</a>
+        <a href="{% url 'study' %}" class="nav-link active">📚 Study</a>
+    </div>
+    <div class="nav-right">
+        <div class="profile-btn" onclick="toggleDD()">
+            <div class="avatar">
+                {% if profile and profile.avatar %}<img src="{{ profile.avatar.url }}" alt="" />
+                {% elif user.first_name %}{{ user.first_name.0|upper }}
+                {% else %}{{ user.username.0|upper }}{% endif %}
+            </div>
+            <span class="profile-name">{{ user.first_name|default:user.username }}</span>
+            <span style="font-size:0.6rem;color:rgba(255,255,255,0.3);margin-left:2px;">▼</span>
+        </div>
+        <div class="dropdown" id="dd">
+            <a href="{% url 'profile' %}">👤 View Profile</a>
+            <a href="{% url 'edit_profile' %}">✏️ Edit Profile</a>
+            <hr />
+            <a href="{% url 'logout' %}" class="danger">🚪 Logout</a>
+        </div>
+    </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+    <div>
+        <h1>📚 <span>My Library</span></h1>
+        <p>Track your borrowed books, due dates, and penalties.</p>
+    </div>
+    <div class="summary-strip">
+        <div class="summary-pill">
+            <span>📖</span>
+            <span class="pill-val pill-purple">{{ records_data|length }}</span>
+            <span style="color:rgba(255,255,255,0.35);">Total Books</span>
+        </div>
+        <div class="summary-pill">
+            <span>⏳</span>
+            <span class="pill-val pill-green" id="active-count">
+                {{ records_data|length }}
+            </span>
+            <span style="color:rgba(255,255,255,0.35);">Active</span>
+        </div>
+        <div class="summary-pill">
+            <span>💰</span>
+            <span class="pill-val pill-red" id="total-penalty">₹0</span>
+            <span style="color:rgba(255,255,255,0.35);">Total Penalty</span>
+        </div>
+    </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+    {% if records_data %}
+        {% for item in records_data %}
+        {% with record=item.record %}
+        <div class="book-card {% if record.is_returned %}returned{% elif item.days_overdue > 0 %}overdue{% else %}ontime{% endif %}"
+             id="bcard-{{ record.id }}"
+             data-record-id="{{ record.id }}"
+             data-penalty-per-day="{{ record.penalty_per_day }}"
+             data-due-date="{{ record.due_date|date:'Y-m-d' }}"
+             data-is-returned="{{ record.is_returned|yesno:'true,false' }}">
+
+            <div class="card-top">
+                <div>
+                    <div class="book-title">{{ record.book_name }}</div>
+                    <div class="book-no">Book No: {{ record.book_no }}</div>
+                </div>
+                {% if record.is_returned %}
+                    <span class="status-badge badge-returned">✅ Returned</span>
+                {% elif item.days_overdue > 0 %}
+                    <span class="status-badge badge-overdue" id="badge-{{ record.id }}">⚠️ {{ item.days_overdue }} day{{ item.days_overdue|pluralize }} overdue</span>
+                {% else %}
+                    <span class="status-badge badge-ontime" id="badge-{{ record.id }}">✔ On Time</span>
+                {% endif %}
+            </div>
+
+            <div class="card-meta">
+                <div class="meta-item"><strong>Start Date</strong>{{ record.start_date }}</div>
+                <div class="meta-item"><strong>Due Date</strong>{{ record.due_date }}</div>
+                <div class="meta-item"><strong>Penalty Rate</strong>₹{{ record.penalty_per_day }} / day</div>
+                {% if record.is_returned and record.returned_date %}
+                <div class="meta-item"><strong>Returned On</strong>{{ record.returned_date }}</div>
+                {% endif %}
+            </div>
+
+            <div class="issuer-chip">
+                <div class="issuer-av">{{ record.issued_by.first_name.0|upper|default:record.issued_by.username.0|upper }}</div>
+                Issued by {{ record.issued_by.get_full_name|default:record.issued_by.username }}
+            </div>
+
+            {% if record.is_returned %}
+                <div class="returned-box">
+                    ✅ This book has been marked as returned by the teacher. No penalties apply.
+                </div>
+            {% elif item.days_overdue > 0 %}
+                <div class="penalty-box ticking" id="pbox-{{ record.id }}">
+                    <div class="penalty-left">
+                        <span class="penalty-label">⏱ Live Penalty Accrued</span>
+                        <span class="penalty-amount" id="penalty-{{ record.id }}">
+                            ₹<span class="amt">{{ item.current_penalty }}</span>
+                        </span>
+                    </div>
+                    <div class="penalty-right">
+                        <span id="days-{{ record.id }}">{{ item.days_overdue }} day{{ item.days_overdue|pluralize }} overdue</span>
+                        <strong>₹{{ record.penalty_per_day }} × {{ item.days_overdue }} days</strong>
+                    </div>
+                </div>
+            {% else %}
+                <div class="returned-box" style="border-color:rgba(0,230,118,0.12);color:rgba(0,230,118,0.7);">
+                    🎉 Book is within due date. Return on time to avoid penalties!
+                </div>
+            {% endif %}
+
+        </div>
+        {% endwith %}
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <div class="e-icon">📭</div>
+            <p>No books issued to you yet. Visit the library to borrow books!</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    function toggleDD() { document.getElementById('dd').classList.toggle('open'); }
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.nav-right')) document.getElementById('dd').classList.remove('open');
+    });
+
+    // --- Live penalty updater ---
+    // Runs every minute to check if a new day has passed and update penalties
+    function updatePenalties() {
+        const cards = document.querySelectorAll('.book-card[data-is-returned="false"]');
+        let totalPenalty = 0;
+        let activeCount = 0;
+
+        cards.forEach(card => {
+            const recordId = card.dataset.recordId;
+            const penaltyPerDay = parseFloat(card.dataset.penaltyPerDay) || 0;
+            const dueDate = new Date(card.dataset.dueDate + 'T00:00:00');
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            activeCount++;
+
+            if (today > dueDate) {
+                const msPerDay = 24 * 60 * 60 * 1000;
+                const daysOverdue = Math.floor((today - dueDate) / msPerDay);
+                const penalty = daysOverdue * penaltyPerDay;
+                totalPenalty += penalty;
+
+                // Update penalty amount
+                const penaltyEl = document.querySelector(`#penalty-${recordId} .amt`);
+                if (penaltyEl) penaltyEl.textContent = penalty.toFixed(2);
+
+                // Update days text
+                const daysEl = document.getElementById(`days-${recordId}`);
+                if (daysEl) daysEl.textContent = `${daysOverdue} day${daysOverdue !== 1 ? 's' : ''} overdue`;
+
+                // Update badge
+                const badge = document.getElementById(`badge-${recordId}`);
+                if (badge) badge.textContent = `⚠️ ${daysOverdue} day${daysOverdue !== 1 ? 's' : ''} overdue`;
+            }
+        });
+
+        // Update summary strip
+        document.getElementById('total-penalty').textContent = `₹${totalPenalty.toFixed(2)}`;
+        document.getElementById('active-count').textContent = activeCount;
+    }
+
+    // Also poll server every 60s to catch teacher-marked returns
+    function pollServer() {
+        const cards = document.querySelectorAll('.book-card[data-is-returned="false"]');
+        cards.forEach(card => {
+            const recordId = card.dataset.recordId;
+            fetch(`/library/penalty/${recordId}/`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.is_returned) {
+                        // Teacher marked as done — update UI
+                        card.dataset.isReturned = 'true';
+                        card.classList.remove('overdue', 'ontime');
+                        card.classList.add('returned');
+                        card.style.opacity = '0.6';
+
+                        const badge = document.getElementById(`badge-${recordId}`);
+                        if (badge) { badge.className = 'status-badge badge-returned'; badge.textContent = '✅ Returned'; }
+
+                        const pbox = document.getElementById(`pbox-${recordId}`);
+                        if (pbox) {
+                            pbox.outerHTML = `<div class="returned-box">✅ This book has been marked as returned by the teacher. No penalties apply.</div>`;
+                        }
+                        updatePenalties();
+                    }
+                })
+                .catch(() => {});
+        });
+    }
+
+    // Run on load
+    updatePenalties();
+
+    // Update every minute
+    setInterval(updatePenalties, 60000);
+
+    // Poll server every 30 seconds for teacher updates
+    setInterval(pollServer, 30000);
+</script>
+</body>
+</html>

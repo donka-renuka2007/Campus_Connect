@@ -1,0 +1,295 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Library Management — Campus Connect</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --green: #00e676; --pink: #ff4d9e; --dark: #0a0a0a; --purple: #ce93d8; }
+
+        body { font-family: 'DM Sans', sans-serif; background: var(--dark); color: #fff; min-height: 100vh; }
+
+        /* NAVBAR */
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 14px 40px; background: #0d0d0d; border-bottom: 1px solid #1e1e1e; position: sticky; top: 0; z-index: 100; }
+        .nav-logo img { width: 85px; }
+        .nav-center { display: flex; gap: 6px; }
+        .nav-link { text-decoration: none; font-family: 'Syne', sans-serif; font-size: 0.76rem; letter-spacing: 0.08em; padding: 8px 18px; border-radius: 50px; color: rgba(255,255,255,0.45); border: 1px solid transparent; transition: all 0.2s; }
+        .nav-link:hover { color: #fff; background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
+        .nav-link.active { color: var(--green); border-color: rgba(0,230,118,0.25); background: rgba(0,230,118,0.06); }
+        .nav-right { display: flex; align-items: center; gap: 10px; position: relative; }
+        .profile-btn { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 50px; padding: 6px 14px 6px 6px; cursor: pointer; transition: all 0.2s; color: #fff; text-decoration: none; }
+        .profile-btn:hover { border-color: var(--green); }
+        .avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--green), var(--pink)); display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-size: 0.72rem; font-weight: 700; color: #000; overflow: hidden; }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-name { font-size: 0.8rem; font-weight: 500; }
+        .dropdown { position: absolute; top: calc(100% + 10px); right: 0; background: #161616; border: 1px solid #2a2a2a; border-radius: 14px; padding: 8px; min-width: 180px; display: none; z-index: 200; box-shadow: 0 16px 40px rgba(0,0,0,0.5); }
+        .dropdown.open { display: block; animation: fadeUp 0.2s ease; }
+        .dropdown a { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; text-decoration: none; color: rgba(255,255,255,0.6); font-size: 0.85rem; transition: all 0.15s; }
+        .dropdown a:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .dropdown hr { border: none; border-top: 1px solid #222; margin: 6px 0; }
+        .dropdown a.danger:hover { background: rgba(255,77,77,0.08); color: #ff6b6b; }
+
+        /* PAGE */
+        .page-header { padding: 36px 40px 24px; border-bottom: 1px solid #1a1a1a; }
+        .page-header h1 { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; }
+        .page-header h1 span { color: var(--purple); }
+        .page-header p { color: rgba(255,255,255,0.35); margin-top: 6px; font-size: 0.9rem; }
+
+        .content { max-width: 1100px; margin: 0 auto; padding: 36px 40px; display: grid; grid-template-columns: 380px 1fr; gap: 28px; align-items: start; }
+
+        /* ISSUE FORM */
+        .form-card { background: #111; border: 1px solid #1e1e1e; border-radius: 20px; padding: 28px; position: sticky; top: 90px; }
+        .form-card h2 { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 22px; color: var(--purple); display: flex; align-items: center; gap: 8px; }
+
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 0.75rem; font-weight: 500; color: rgba(255,255,255,0.4); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 7px; }
+        .form-group input, .form-group select {
+            width: 100%; background: #0d0d0d; border: 1px solid #1e1e1e; border-radius: 10px;
+            padding: 10px 14px; color: #fff; font-family: 'DM Sans', sans-serif; font-size: 0.88rem;
+            outline: none; transition: border-color 0.2s;
+        }
+        .form-group input:focus, .form-group select:focus { border-color: var(--purple); }
+        .form-group select option { background: #111; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        .submit-btn {
+            width: 100%; margin-top: 6px; padding: 12px; border-radius: 12px;
+            background: linear-gradient(135deg, var(--purple), #9c4dcc);
+            border: none; color: #fff; font-family: 'Syne', sans-serif; font-size: 0.88rem;
+            font-weight: 700; cursor: pointer; letter-spacing: 0.04em; transition: all 0.2s;
+        }
+        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(206,147,216,0.25); }
+
+        /* RECORDS TABLE */
+        .records-section h2 { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 18px; color: #fff; display: flex; align-items: center; gap: 8px; }
+
+        .records-count { font-size: 0.72rem; background: rgba(255,255,255,0.06); border-radius: 50px; padding: 3px 10px; color: rgba(255,255,255,0.4); font-family: 'DM Sans', sans-serif; font-weight: 400; }
+
+        .record-card {
+            background: #111; border: 1px solid #1e1e1e; border-radius: 16px; padding: 20px 22px;
+            margin-bottom: 12px; display: grid; grid-template-columns: 1fr auto;
+            gap: 14px; align-items: center; transition: border-color 0.2s; animation: fadeUp 0.4s ease;
+        }
+        .record-card:hover { border-color: #2a2a2a; }
+        .record-card.returned { opacity: 0.55; }
+
+        .record-main { display: flex; flex-direction: column; gap: 6px; }
+        .record-book { font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700; }
+        .record-meta { display: flex; flex-wrap: wrap; gap: 10px; }
+        .meta-chip { font-size: 0.74rem; color: rgba(255,255,255,0.35); display: flex; align-items: center; gap: 4px; }
+        .meta-chip strong { color: rgba(255,255,255,0.7); }
+
+        .student-chip { display: inline-flex; align-items: center; gap: 6px; background: rgba(206,147,216,0.08); border: 1px solid rgba(206,147,216,0.15); border-radius: 50px; padding: 3px 10px 3px 6px; font-size: 0.75rem; color: var(--purple); margin-top: 2px; }
+        .student-chip-av { width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, var(--green), var(--pink)); display: flex; align-items: center; justify-content: center; font-size: 0.55rem; font-weight: 700; color: #000; }
+
+        .overdue-badge { font-size: 0.7rem; background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.2); color: #ff6b6b; border-radius: 50px; padding: 2px 8px; }
+        .ok-badge { font-size: 0.7rem; background: rgba(0,230,118,0.08); border: 1px solid rgba(0,230,118,0.15); color: var(--green); border-radius: 50px; padding: 2px 8px; }
+        .done-badge { font-size: 0.7rem; background: rgba(0,230,118,0.08); border: 1px solid rgba(0,230,118,0.15); color: var(--green); border-radius: 50px; padding: 2px 8px; }
+
+        /* Done button */
+        .done-btn {
+            padding: 8px 18px; border-radius: 50px; border: 1px solid rgba(0,230,118,0.25);
+            background: rgba(0,230,118,0.06); color: var(--green); font-size: 0.78rem;
+            font-family: 'Syne', sans-serif; font-weight: 700; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+        }
+        .done-btn:hover { background: rgba(0,230,118,0.12); transform: scale(1.03); }
+        .returned-label { color: rgba(255,255,255,0.25); font-size: 0.78rem; font-style: italic; }
+
+        .empty-state { text-align: center; padding: 50px 20px; color: rgba(255,255,255,0.2); }
+        .empty-state .e-icon { font-size: 2.5rem; margin-bottom: 12px; }
+        .empty-state p { font-size: 0.88rem; }
+
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 900px) {
+            .content { grid-template-columns: 1fr; padding: 24px 20px; }
+            .form-card { position: static; }
+            nav { padding: 12px 18px; }
+            .nav-center { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+    <div class="nav-logo"><a href="{% url 'home' %}"><img src="{% static 'images/logo.png' %}" alt="Campus Connect" /></a></div>
+    <div class="nav-center">
+        <a href="{% url 'announcements' %}" class="nav-link">📢 Announcements</a>
+        <a href="{% url 'study' %}" class="nav-link active">📚 Study</a>
+    </div>
+    <div class="nav-right">
+        <div class="profile-btn" onclick="toggleDD()">
+            <div class="avatar">
+                {% if profile and profile.avatar %}<img src="{{ profile.avatar.url }}" alt="" />
+                {% elif user.first_name %}{{ user.first_name.0|upper }}
+                {% else %}{{ user.username.0|upper }}{% endif %}
+            </div>
+            <span class="profile-name">{{ user.first_name|default:user.username }}</span>
+            <span style="font-size:0.6rem;color:rgba(255,255,255,0.3);margin-left:2px;">▼</span>
+        </div>
+        <div class="dropdown" id="dd">
+            <a href="{% url 'profile' %}">👤 View Profile</a>
+            <a href="{% url 'edit_profile' %}">✏️ Edit Profile</a>
+            <hr />
+            <a href="{% url 'logout' %}" class="danger">🚪 Logout</a>
+        </div>
+    </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+    <h1>📚 <span>Library Management</span></h1>
+    <p>Issue books to students, track due dates, and manage returns.</p>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+    <!-- ISSUE FORM -->
+    <div class="form-card">
+        <h2>📖 Issue a Book</h2>
+        <form method="POST" action="{% url 'library' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Book Name</label>
+                <input type="text" name="book_name" placeholder="e.g. Data Structures by Cormen" required />
+            </div>
+            <div class="form-group">
+                <label>Book Number / ID</label>
+                <input type="text" name="book_no" placeholder="e.g. LIB-2024-001" required />
+            </div>
+            <div class="form-group">
+                <label>Select Student</label>
+                <select name="student_id" required>
+                    <option value="" disabled selected>— Choose student —</option>
+                    {% for student in students %}
+                    <option value="{{ student.id }}">{{ student.get_full_name|default:student.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Start Date</label>
+                    <input type="date" name="start_date" required />
+                </div>
+                <div class="form-group">
+                    <label>Due Date</label>
+                    <input type="date" name="due_date" required />
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Penalty per Day (₹)</label>
+                <input type="number" name="penalty_per_day" placeholder="e.g. 5" min="0" step="0.50" value="5" required />
+            </div>
+            <button type="submit" class="submit-btn">📤 Issue Book</button>
+        </form>
+    </div>
+
+    <!-- RECORDS -->
+    <div class="records-section">
+        <h2>📋 Issued Books <span class="records-count">{{ records.count }} total</span></h2>
+
+        {% if records %}
+            {% for record in records %}
+            <div class="record-card {% if record.is_returned %}returned{% endif %}" id="record-{{ record.id }}">
+                <div class="record-main">
+                    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                        <span class="record-book">{{ record.book_name }}</span>
+                        {% if record.is_returned %}
+                            <span class="done-badge">✅ Returned</span>
+                        {% elif record.days_overdue > 0 %}
+                            <span class="overdue-badge">⚠️ {{ record.days_overdue }} day{{ record.days_overdue|pluralize }} overdue</span>
+                        {% else %}
+                            <span class="ok-badge">✔ On time</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="student-chip">
+                        <div class="student-chip-av">{{ record.student.first_name.0|upper|default:record.student.username.0|upper }}</div>
+                        {{ record.student.get_full_name|default:record.student.username }}
+                    </div>
+
+                    <div class="record-meta">
+                        <span class="meta-chip">📖 <strong>{{ record.book_no }}</strong></span>
+                        <span class="meta-chip">📅 Start: <strong>{{ record.start_date }}</strong></span>
+                        <span class="meta-chip">⏰ Due: <strong>{{ record.due_date }}</strong></span>
+                        <span class="meta-chip">💰 Penalty: <strong>₹{{ record.penalty_per_day }}/day</strong></span>
+                        {% if record.current_penalty > 0 %}
+                        <span class="meta-chip" style="color:#ff6b6b;">⚠️ Total: <strong style="color:#ff6b6b;">₹{{ record.current_penalty }}</strong></span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    {% if record.is_returned %}
+                        <span class="returned-label">Returned<br>{{ record.returned_date }}</span>
+                    {% else %}
+                        <button class="done-btn" onclick="markDone({{ record.id }}, this)">✅ Mark Done</button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div class="e-icon">📭</div>
+                <p>No books issued yet. Use the form to issue your first book.</p>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<script>
+    function toggleDD() { document.getElementById('dd').classList.toggle('open'); }
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.nav-right')) document.getElementById('dd').classList.remove('open');
+    });
+
+    // Set default dates
+    window.addEventListener('DOMContentLoaded', () => {
+        const today = new Date().toISOString().split('T')[0];
+        const startInput = document.querySelector('input[name="start_date"]');
+        if (startInput) startInput.value = today;
+    });
+
+    function markDone(recordId, btn) {
+        btn.disabled = true;
+        btn.textContent = '⏳ Saving...';
+        fetch(`/library/mark-returned/${recordId}/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                const card = document.getElementById(`record-${recordId}`);
+                card.classList.add('returned');
+                btn.parentElement.innerHTML = '<span class="returned-label">Returned<br>today</span>';
+                // Update the status badge
+                const badges = card.querySelectorAll('.overdue-badge, .ok-badge');
+                badges.forEach(b => b.remove());
+                const bookName = card.querySelector('.record-book');
+                const badge = document.createElement('span');
+                badge.className = 'done-badge';
+                badge.textContent = '✅ Returned';
+                bookName.after(badge);
+            }
+        })
+        .catch(() => { btn.disabled = false; btn.textContent = '✅ Mark Done'; });
+    }
+
+    function getCookie(name) {
+        let c = null;
+        document.cookie.split(';').forEach(cookie => {
+            const [k, v] = cookie.trim().split('=');
+            if (k === name) c = decodeURIComponent(v);
+        });
+        return c;
+    }
+</script>
+</body>
+</html>

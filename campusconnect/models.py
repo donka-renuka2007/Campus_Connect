@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
-
+from decimal import Decimal
+from django.utils import timezone
 BRANCH_CHOICES = [
     # Computing
     ('aiml', 'AI & ML'),
@@ -218,3 +219,59 @@ class QuizAnswer(models.Model):
 
     def __str__(self):
         return f"{self.submission.student.username} - Q{self.question.order}"
+
+
+
+
+class LibraryRecord(models.Model):
+    # Teacher who issued the book
+    issued_by = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='issued_books'
+    )
+    # Student who borrowed the book
+    student = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='borrowed_books'
+    )
+
+    book_name = models.CharField(max_length=255)
+    book_no = models.CharField(max_length=100)
+    start_date = models.DateField()
+    due_date = models.DateField()
+    penalty_per_day = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+
+    # Teacher marks as returned/done
+    is_returned = models.BooleanField(default=False)
+    returned_date = models.DateField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Library Record'
+        verbose_name_plural = 'Library Records'
+
+    def __str__(self):
+        return f"{self.book_name} → {self.student.get_full_name() or self.student.username}"
+
+    @property
+    def days_overdue(self):
+        if self.is_returned:
+            return 0
+        today = timezone.now().date()
+        if today > self.due_date:
+            return (today - self.due_date).days
+        return 0
+
+    @property
+    def current_penalty(self):
+        return Decimal(self.days_overdue) * self.penalty_per_day
+
+    @property
+    def status(self):
+        if self.is_returned:
+            return 'returned'
+        elif self.days_overdue > 0:
+            return 'overdue'
+        else:
+            return 'active'

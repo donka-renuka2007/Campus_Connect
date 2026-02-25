@@ -125,3 +125,161 @@ class QuizAnswerAdmin(admin.ModelAdmin):
     list_filter   = ('is_correct',)
     search_fields = ('submission__student__username', 'question__question')
     readonly_fields = ('submission', 'question', 'answer', 'is_correct')
+
+
+
+
+
+
+
+
+
+
+from django.utils import timezone
+from .models import LibraryRecord
+
+
+@admin.register(LibraryRecord)
+class LibraryRecordAdmin(admin.ModelAdmin):
+
+    # ── List view columns ──────────────────────────────────
+    list_display = (
+        'book_name',
+        'book_no',
+        'student_name',
+        'issued_by_name',
+        'start_date',
+        'due_date',
+        'penalty_per_day',
+        'days_overdue_display',
+        'penalty_display',
+        'status_badge',
+    )
+
+    # ── Filters on the right sidebar ──────────────────────
+    list_filter = (
+        'is_returned',
+        'start_date',
+        'due_date',
+        'issued_by',
+    )
+
+    # ── Search bar ────────────────────────────────────────
+    search_fields = (
+        'book_name',
+        'book_no',
+        'student__username',
+        'student__first_name',
+        'student__last_name',
+        'issued_by__username',
+        'issued_by__first_name',
+    )
+
+    # ── Default ordering ──────────────────────────────────
+    ordering = ('-created_at',)
+
+    # ── Date hierarchy navigation ─────────────────────────
+    date_hierarchy = 'start_date'
+
+    # ── Read-only fields ──────────────────────────────────
+    readonly_fields = ('created_at', 'updated_at', 'days_overdue_display', 'penalty_display')
+
+    # ── Fieldsets for the detail/edit form ────────────────
+    fieldsets = (
+        ('📖 Book Details', {
+            'fields': ('book_name', 'book_no')
+        }),
+        ('👥 People', {
+            'fields': ('issued_by', 'student')
+        }),
+        ('📅 Dates', {
+            'fields': ('start_date', 'due_date')
+        }),
+        ('💰 Penalty', {
+            'fields': ('penalty_per_day', 'days_overdue_display', 'penalty_display')
+        }),
+        ('✅ Return Status', {
+            'fields': ('is_returned', 'returned_date')
+        }),
+        ('🕒 Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',),
+        }),
+    )
+
+    # ── Bulk actions ──────────────────────────────────────
+    actions = ['mark_as_returned', 'mark_as_not_returned']
+
+    # ── Custom column: Student full name ──────────────────
+    @admin.display(description='Student', ordering='student__first_name')
+    def student_name(self, obj):
+        name = obj.student.get_full_name() or obj.student.username
+        return format_html('<strong>{}</strong>', name)
+
+    # ── Custom column: Issued by ──────────────────────────
+    @admin.display(description='Issued By', ordering='issued_by__first_name')
+    def issued_by_name(self, obj):
+        return obj.issued_by.get_full_name() or obj.issued_by.username
+
+    # ── Custom column: Days overdue ───────────────────────
+    @admin.display(description='Days Overdue')
+    def days_overdue_display(self, obj):
+        days = obj.days_overdue
+        if obj.is_returned:
+            return format_html('<span style="color:#aaa;">—</span>')
+        elif days > 0:
+            return format_html(
+                '<span style="color:#ff6b6b;font-weight:bold;">⚠️ {} day{}</span>',
+                days, 's' if days != 1 else ''
+            )
+        else:
+            return format_html('<span style="color:#00e676;">✔ On time</span>')
+
+    # ── Custom column: Current penalty ───────────────────
+    @admin.display(description='Penalty Due')
+    def penalty_display(self, obj):
+        penalty = obj.current_penalty
+        if obj.is_returned:
+            return format_html('<span style="color:#aaa;">—</span>')
+        elif penalty > 0:
+            return format_html(
+                '<span style="color:#ff6b6b;font-weight:bold;">₹{}</span>',
+                penalty
+            )
+        else:
+            return format_html('<span style="color:#aaa;">₹0</span>')
+
+    # ── Custom column: Status badge ───────────────────────
+    @admin.display(description='Status')
+    def status_badge(self, obj):
+        if obj.is_returned:
+            return format_html(
+                '<span style="background:#0a2e1a;color:#00e676;padding:3px 10px;border-radius:20px;font-size:0.78rem;">✅ Returned</span>'
+            )
+        elif obj.days_overdue > 0:
+            return format_html(
+                '<span style="background:#2e0a0a;color:#ff6b6b;padding:3px 10px;border-radius:20px;font-size:0.78rem;">⚠️ Overdue</span>'
+            )
+        else:
+            return format_html(
+                '<span style="background:#0a1a2e;color:#64b5f6;padding:3px 10px;border-radius:20px;font-size:0.78rem;">📖 Active</span>'
+            )
+
+    # ── Bulk action: Mark selected as returned ────────────
+    @admin.action(description='✅ Mark selected books as returned')
+    def mark_as_returned(self, request, queryset):
+        today = timezone.now().date()
+        updated = queryset.filter(is_returned=False).update(
+            is_returned=True,
+            returned_date=today,
+        )
+        self.message_user(request, f'{updated} book(s) marked as returned.')
+
+    # ── Bulk action: Unmark returned ──────────────────────
+    @admin.action(description='↩️ Unmark selected books as returned')
+    def mark_as_not_returned(self, request, queryset):
+        updated = queryset.filter(is_returned=True).update(
+            is_returned=False,
+            returned_date=None,
+        )
+        self.message_user(request, f'{updated} book(s) unmarked.')

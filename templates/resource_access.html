@@ -1,0 +1,105 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Resources — CampusConnect</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Inter', sans-serif; background:#0b0f14; color:white; }
+
+        .topbar {
+            height:110px;
+            background: linear-gradient(180deg, #5BE37F 0%, #43C96A 100%);
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            padding:0 50px;
+            border-bottom-left-radius:18px;
+            border-bottom-right-radius:18px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.35), inset 0 -10px 20px rgba(0,0,0,0.15);
+        }
+        .logo-box { display:flex; align-items:center; gap:14px; }
+        .logo-box img { width:52px; height:52px; background:#0b0f14; padding:10px; border-radius:14px; }
+        .logo-box span { font-size:22px; font-weight:700; }
+        .back-btn {
+            text-decoration:none;
+            background:rgba(0,0,0,0.2);
+            color:white;
+            padding:10px 20px;
+            border-radius:10px;
+            font-size:14px;
+            font-weight:500;
+        }
+        .back-btn:hover { background:rgba(0,0,0,0.35); }
+
+        .wrapper { max-width:1200px; margin:80px auto; padding:0 40px; }
+
+        .course-grid {
+            display:grid;
+            grid-template-columns:repeat(3, 1fr);
+            gap:30px;
+        }
+
+        .card {
+            background:linear-gradient(180deg,#0f2943,#0b2036);
+            padding:40px 24px;
+            border-radius:16px;
+            border:1px solid rgba(255,255,255,0.18);
+            text-align:center;
+            box-shadow:0 8px 24px rgba(0,0,0,0.35);
+            transition:all .25s ease;
+            text-decoration:none;
+            color:white;
+            display:block;
+        }
+        .card:hover {
+            transform:translateY(-6px);
+            box-shadow:0 16px 40px rgba(0,0,0,0.55);
+            border-color:rgba(94,200,255,0.3);
+        }
+        .card h2 { font-size:42px; font-weight:800; margin-bottom:8px; }
+        .card p { color:#b9c4cf; font-size:14px; margin-bottom:20px; }
+        .card .count {
+            display:inline-block;
+            background:rgba(30,136,255,0.15);
+            border:1px solid rgba(30,136,255,0.3);
+            color:#5eb8ff;
+            padding:4px 14px;
+            border-radius:50px;
+            font-size:12px;
+            font-weight:600;
+        }
+
+        @media(max-width:900px) { .course-grid { grid-template-columns:repeat(2,1fr); } }
+        @media(max-width:560px) { .course-grid { grid-template-columns:1fr; } }
+    </style>
+</head>
+<body>
+
+<header class="topbar">
+    <div class="logo-box">
+        <img src="{% static 'images/logo.png' %}" alt="CampusConnect">
+        <span>CampusConnect</span>
+    </div>
+    <a href="{% url 'study' %}" class="back-btn">← Back to Study Hub</a>
+</header>
+
+<main class="wrapper">
+    <section class="course-grid">
+
+       {% for subject_code, subject_name, count in subjects %}
+<a href="{% url 'resource_subject' subject_code %}" class="card">
+    <h2>{{ subject_code }}</h2>
+    <p>{{ subject_name }}</p>
+    <span class="count">{{ count }} file{{ count|pluralize }}</span>
+</a>
+{% endfor %}
+
+    </section>
+</main>
+
+</body>
+</html>

@@ -11,6 +11,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
+from .models import LibraryRecord
 def home(request):
     return render(request, 'home.html')
 
@@ -628,3 +629,178 @@ Be concise, friendly, and encouraging. Use **bold** for key terms and numbered l
 def chatbot(request):
     profile = getattr(request.user, 'profile', None)
     return render(request, 'chatbot.html', {'profile': profile})
+
+
+
+
+
+# ──────────────────────────────────────────────
+# HELPER: Check if user is a teacher
+# Teachers = staff users OR users in 'Teacher' group
+# ──────────────────────────────────────────────
+def is_teacher(user):
+    profile = getattr(user, 'profile', None)
+    return profile is not None and profile.role == 'faculty'
+
+
+# ──────────────────────────────────────────────
+# MAIN LIBRARY VIEW — routes to teacher or student
+# ──────────────────────────────────────────────
+@login_required
+def library(request):
+    profile = getattr(request.user, 'profile', None)
+    if is_teacher(request.user):
+        return teacher_library(request, profile)
+    else:
+        return student_library(request, profile)
+
+
+# ──────────────────────────────────────────────
+# TEACHER LIBRARY VIEW
+# ──────────────────────────────────────────────
+def teacher_library(request, profile):
+    if request.method == 'POST':
+        student_id    = request.POST.get('student_id')
+        book_name     = request.POST.get('book_name', '').strip()
+        book_no       = request.POST.get('book_no', '').strip()
+        start_date    = request.POST.get('start_date')
+        due_date      = request.POST.get('due_date')
+        penalty_per_day = request.POST.get('penalty_per_day', 0)
+
+        if not all([student_id, book_name, book_no, start_date, due_date]):
+            messages.error(request, 'Please fill in all fields.')
+            return redirect('library')
+
+        student = get_object_or_404(User, id=student_id)
+
+        LibraryRecord.objects.create(
+            issued_by=request.user,
+            student=student,
+            book_name=book_name,
+            book_no=book_no,
+            start_date=start_date,
+            due_date=due_date,
+            penalty_per_day=penalty_per_day,
+        )
+        messages.success(request, f'Book "{book_name}" issued to {student.get_full_name() or student.username}.')
+        return redirect('library')
+
+    # All records issued by this teacher
+    records = LibraryRecord.objects.filter(
+        issued_by=request.user
+    ).select_related('student')
+
+    # Get student list — try 'Student' group first, fallback to all non-staff
+    students = User.objects.filter(
+    profile__role='student',
+    is_active=True
+      ).order_by('first_name', 'username')
+
+    # Stats for teacher dashboard
+    total      = records.count()
+    overdue    = sum(1 for r in records if r.days_overdue > 0 and not r.is_returned)
+    returned   = records.filter(is_returned=True).count()
+    active     = total - returned
+
+    return render(request, 'library_teacher.html', {
+        'profile':  profile,
+        'records':  records,
+        'students': students,
+        'today':    timezone.now().date(),
+        'stats': {
+            'total':    total,
+            'active':   active,
+            'overdue':  overdue,
+            'returned': returned,
+        }
+    })
+
+
+# ──────────────────────────────────────────────
+# STUDENT LIBRARY VIEW
+# ──────────────────────────────────────────────
+def student_library(request, profile):
+    records = LibraryRecord.objects.filter(
+        student=request.user
+    ).select_related('issued_by')
+
+    today = timezone.now().date()
+
+    records_data = []
+    total_penalty = 0
+
+    for r in records:
+        days_overdue = 0
+        if not r.is_returned and today > r.due_date:
+            days_overdue = (today - r.due_date).days
+
+        current_penalty = float(r.penalty_per_day) * days_overdue
+        total_penalty += current_penalty
+
+        records_data.append({
+            'record':          r,
+            'days_overdue':    days_overdue,
+            'current_penalty': current_penalty,
+        })
+
+    active_count = sum(1 for rd in records_data if not rd['record'].is_returned)
+
+    return render(request, 'library_student.html', {
+        'profile':       profile,
+        'records_data':  records_data,
+        'today':         today,
+        'total_penalty': total_penalty,
+        'active_count':  active_count,
+    })
+
+
+# ──────────────────────────────────────────────
+# AJAX: Teacher marks a book as returned/done
+# POST /library/mark-returned/<id>/
+# ──────────────────────────────────────────────
+@login_required
+@require_POST
+def mark_returned(request, record_id):
+    if not is_teacher(request.user):
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+
+    record = get_object_or_404(LibraryRecord, id=record_id, issued_by=request.user)
+
+    if record.is_returned:
+        return JsonResponse({'error': 'Already marked as returned'}, status=400)
+
+    record.is_returned    = True
+    record.returned_date  = timezone.now().date()
+    record.save()
+
+    return JsonResponse({
+        'success':       True,
+        'returned_date': str(record.returned_date),
+        'record_id':     record.id,
+    })
+
+
+# ──────────────────────────────────────────────
+# AJAX: Live penalty data for student
+# GET /library/penalty/<id>/
+# ──────────────────────────────────────────────
+@login_required
+def penalty_api(request, record_id):
+    record = get_object_or_404(LibraryRecord, id=record_id, student=request.user)
+
+    today = timezone.now().date()
+    days_overdue = 0
+
+    if not record.is_returned and today > record.due_date:
+        days_overdue = (today - record.due_date).days
+
+    penalty = float(record.penalty_per_day) * days_overdue
+
+    return JsonResponse({
+        'record_id':    record.id,
+        'days_overdue': days_overdue,
+        'penalty':      round(penalty, 2),
+        'is_returned':  record.is_returned,
+        'returned_date': str(record.returned_date) if record.returned_date else None,
+        'status':       record.status,
+    })
