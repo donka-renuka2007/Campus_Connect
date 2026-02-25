@@ -275,3 +275,47 @@ class LibraryRecord(models.Model):
             return 'overdue'
         else:
             return 'active'
+
+
+
+
+# ──complaint model ─────────────────────────────────────────
+
+class Complaint(models.Model):
+
+    COMPLAINT_TYPES = [
+        ('academic',    '📚 Academic Issue'),
+        ('attendance',  '🗓 Attendance Problem'),
+        ('behavior',    '⚠️ Behavior / Misconduct'),
+        ('facility',    '🏫 Facility / Infrastructure'),
+        ('fees',        '💰 Fees / Financial'),
+        ('harassment',  '🚫 Harassment / Discrimination'),
+        ('other',       '📝 Other'),
+    ]
+
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('viewed',  'Viewed'),
+        ('solved',  'Solved'),
+    ]
+
+    URGENCY_CHOICES = [
+        ('normal', 'Normal'),
+        ('urgent', 'Urgent'),
+    ]
+
+    student        = models.ForeignKey(User, on_delete=models.CASCADE, related_name='complaints_sent')
+    teacher        = models.ForeignKey(User, on_delete=models.CASCADE, related_name='complaints_received')
+    heading        = models.CharField(max_length=200)
+    description    = models.TextField()
+    complaint_type = models.CharField(max_length=20, choices=COMPLAINT_TYPES)
+    urgency        = models.CharField(max_length=10, choices=URGENCY_CHOICES, default='normal')
+    status         = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    created_at     = models.DateTimeField(auto_now_add=True)
+    updated_at     = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.heading} — {self.student.username} → {self.teacher.username}"

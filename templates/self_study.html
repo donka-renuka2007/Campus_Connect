@@ -1,0 +1,206 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Self Study — Campus Connect</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --green: #00e676; --pink: #ff4d9e; --dark: #0a0a0a; --yellow: #ffc107; }
+
+        body { font-family: 'DM Sans', sans-serif; background: var(--dark); color: #fff; min-height: 100vh; }
+
+        /* NAVBAR */
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 14px 40px; background: #0d0d0d; border-bottom: 1px solid #1e1e1e; position: sticky; top: 0; z-index: 100; }
+        .nav-logo img { width: 85px; }
+        .nav-center { display: flex; gap: 6px; }
+        .nav-link { text-decoration: none; font-family: 'Syne', sans-serif; font-size: 0.76rem; letter-spacing: 0.08em; padding: 8px 18px; border-radius: 50px; color: rgba(255,255,255,0.45); border: 1px solid transparent; transition: all 0.2s; }
+        .nav-link:hover { color: #fff; background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
+        .nav-link.active { color: var(--green); border-color: rgba(0,230,118,0.25); background: rgba(0,230,118,0.06); }
+        .nav-right { display: flex; align-items: center; gap: 10px; position: relative; }
+        .profile-btn { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 50px; padding: 6px 14px 6px 6px; cursor: pointer; transition: all 0.2s; color: #fff; text-decoration: none; }
+        .profile-btn:hover { border-color: var(--green); }
+        .avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--green), var(--pink)); display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-size: 0.72rem; font-weight: 700; color: #000; overflow: hidden; }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-name { font-size: 0.8rem; font-weight: 500; }
+        .dropdown { position: absolute; top: calc(100% + 10px); right: 0; background: #161616; border: 1px solid #2a2a2a; border-radius: 14px; padding: 8px; min-width: 180px; display: none; z-index: 200; box-shadow: 0 16px 40px rgba(0,0,0,0.5); }
+        .dropdown.open { display: block; animation: fadeUp 0.2s ease; }
+        .dropdown a { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; text-decoration: none; color: rgba(255,255,255,0.6); font-size: 0.85rem; transition: all 0.15s; }
+        .dropdown a:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .dropdown hr { border: none; border-top: 1px solid #222; margin: 6px 0; }
+        .dropdown a.danger:hover { background: rgba(255,77,77,0.08); color: #ff6b6b; }
+
+        /* PAGE */
+        .page-header { padding: 40px 40px 28px; border-bottom: 1px solid #1a1a1a; }
+        .page-header h1 { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; }
+        .page-header h1 span { color: var(--yellow); }
+        .page-header p { color: rgba(255,255,255,0.35); margin-top: 8px; font-size: 0.9rem; }
+
+        /* SEARCH + FILTER */
+        .toolbar { display: flex; gap: 12px; padding: 28px 40px 0; max-width: 1100px; margin: 0 auto; flex-wrap: wrap; }
+        .search-box { flex: 1; min-width: 200px; display: flex; align-items: center; gap: 10px; background: #111; border: 1px solid #1e1e1e; border-radius: 12px; padding: 10px 16px; transition: border-color 0.2s; }
+        .search-box:focus-within { border-color: var(--yellow); }
+        .search-box input { flex: 1; background: none; border: none; outline: none; color: #fff; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; }
+        .search-box input::placeholder { color: rgba(255,255,255,0.2); }
+        .filter-btn { padding: 10px 18px; background: #111; border: 1px solid #1e1e1e; border-radius: 12px; color: rgba(255,255,255,0.4); font-size: 0.82rem; cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif; }
+        .filter-btn.active, .filter-btn:hover { border-color: var(--yellow); color: var(--yellow); background: rgba(255,193,7,0.06); }
+
+        /* GRID */
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding: 24px 40px 40px; max-width: 1100px; margin: 0 auto; }
+
+        .resource-card {
+            background: #111; border: 1px solid #1e1e1e; border-radius: 16px; padding: 20px;
+            cursor: pointer; transition: all 0.25s; animation: fadeUp 0.4s ease both; position: relative; overflow: hidden;
+            text-decoration: none; color: #fff; display: block;
+        }
+        .resource-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--card-clr, var(--yellow)); transform: scaleX(0); transform-origin: left; transition: transform 0.3s; }
+        .resource-card:hover { transform: translateY(-4px); border-color: #2a2a2a; background: #141414; }
+        .resource-card:hover::before { transform: scaleX(1); }
+
+        .rc-icon { font-size: 2rem; margin-bottom: 12px; }
+        .rc-title { font-family: 'Syne', sans-serif; font-size: 0.92rem; font-weight: 700; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .rc-meta { font-size: 0.76rem; color: rgba(255,255,255,0.3); }
+        .rc-uploader { display: flex; align-items: center; gap: 6px; margin-top: 12px; font-size: 0.74rem; color: rgba(255,255,255,0.35); }
+        .rc-av { width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, var(--green), var(--pink)); display: flex; align-items: center; justify-content: center; font-size: 0.5rem; font-weight: 700; color: #000; }
+
+        .rc-tag { display: inline-block; margin-top: 10px; font-size: 0.63rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 8px; border-radius: 50px; background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.25); }
+
+        /* file type colors */
+        .type-pdf  { --card-clr: #ff6b6b; }
+        .type-doc  { --card-clr: #64b5f6; }
+        .type-img  { --card-clr: #a5d6a7; }
+        .type-ppt  { --card-clr: #ffb74d; }
+        .type-other { --card-clr: #ce93d8; }
+
+        .empty-state { text-align: center; padding: 80px 20px; color: rgba(255,255,255,0.2); grid-column: 1/-1; }
+        .empty-state .e-icon { font-size: 3rem; margin-bottom: 14px; }
+
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+        .resource-card:nth-child(1) { animation-delay: 0.05s; }
+        .resource-card:nth-child(2) { animation-delay: 0.10s; }
+        .resource-card:nth-child(3) { animation-delay: 0.15s; }
+        .resource-card:nth-child(4) { animation-delay: 0.20s; }
+        .resource-card:nth-child(5) { animation-delay: 0.25s; }
+        .resource-card:nth-child(6) { animation-delay: 0.30s; }
+
+        @media (max-width: 900px) { .grid { grid-template-columns: repeat(2,1fr); padding: 20px; } .toolbar { padding: 20px 20px 0; } }
+        @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } nav { padding: 12px 18px; } .nav-center { display: none; } .page-header { padding: 24px 18px; } }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="nav-logo"><a href="{% url 'home' %}"><img src="{% static 'images/logo.png' %}" alt="Campus Connect" /></a></div>
+    <div class="nav-center">
+        <a href="{% url 'announcements' %}" class="nav-link">📢 Announcements</a>
+        <a href="{% url 'study' %}" class="nav-link active">📚 Study</a>
+    </div>
+    <div class="nav-right">
+        <div class="profile-btn" onclick="toggleDD()">
+            <div class="avatar">
+                {% if profile and profile.avatar %}<img src="{{ profile.avatar.url }}" alt="" />
+                {% elif user.first_name %}{{ user.first_name.0|upper }}
+                {% else %}{{ user.username.0|upper }}{% endif %}
+            </div>
+            <span class="profile-name">{{ user.first_name|default:user.username }}</span>
+            <span style="font-size:0.6rem;color:rgba(255,255,255,0.3);margin-left:2px;">▼</span>
+        </div>
+        <div class="dropdown" id="dd">
+            <a href="{% url 'profile' %}">👤 View Profile</a>
+            <a href="{% url 'edit_profile' %}">✏️ Edit Profile</a>
+            <hr />
+            <a href="{% url 'logout' %}" class="danger">🚪 Logout</a>
+        </div>
+    </div>
+</nav>
+
+<div class="page-header">
+    <h1>🧠 <span>Self Study</span></h1>
+    <p>Pick a resource to study — compiler and AI assistant will open alongside it.</p>
+</div>
+
+<div class="toolbar">
+    <div class="search-box">
+        <span style="color:rgba(255,255,255,0.2);">🔍</span>
+        <input type="text" id="search" placeholder="Search resources..." oninput="filterCards()" />
+    </div>
+    <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+    <button class="filter-btn" onclick="setFilter('pdf', this)">📄 PDF</button>
+    <button class="filter-btn" onclick="setFilter('doc', this)">📝 DOC</button>
+    <button class="filter-btn" onclick="setFilter('img', this)">🖼 Image</button>
+    <button class="filter-btn" onclick="setFilter('ppt', this)">📊 PPT</button>
+</div>
+<!-- Subject filters -->
+<div class="toolbar" style="padding-top:10px;">
+    <span style="font-size:0.72rem;color:rgba(255,255,255,0.25);align-self:center;letter-spacing:0.06em;text-transform:uppercase;">Subject:</span>
+    <button class="filter-btn active" onclick="setSubject('all', this)" id="subj-all">All</button>
+    <button class="filter-btn" onclick="setSubject('oops', this)">OOPS</button>
+    <button class="filter-btn" onclick="setSubject('ads', this)">ADS</button>
+    <button class="filter-btn" onclick="setSubject('dmgt', this)">DM & GT</button>
+    <button class="filter-btn" onclick="setSubject('uhv', this)">UHV</button>
+    <button class="filter-btn" onclick="setSubject('ai', this)">AI</button>
+    <button class="filter-btn" onclick="setSubject('python', this)">Python</button>
+</div>
+
+<div class="grid" id="resource-grid">
+    {% if resources %}
+        {% for res in resources %}
+        <a href="{% url 'self_study_workspace' res.id %}"
+           class="resource-card type-{{ res.file_type }}"
+           data-type="{{ res.file_type }}"
+           data-title="{{ res.title|lower }}"
+           data-subject="{{ res.subject|lower }}">
+            <div class="rc-icon">{{ res.icon }}</div>
+            <div class="rc-title">{{ res.title }}</div>
+            <div style="font-size:0.72rem;color:rgba(255,193,7,0.65);margin:3px 0 6px;">📘 {{ res.subject }}</div>
+            <div class="rc-meta">{{ res.file_size }} · {{ res.created_at|date:"d M Y" }}</div>
+            <div class="rc-uploader">
+                <div class="rc-av">{{ res.uploaded_by.first_name.0|upper|default:res.uploaded_by.username.0|upper }}</div>
+                {{ res.uploaded_by.get_full_name|default:res.uploaded_by.username }}
+            </div>
+            <span class="rc-tag">{{ res.file_type|upper }}</span>
+        </a>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <div class="e-icon">📭</div>
+            <p>No resources uploaded yet. Upload study materials first!</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    function toggleDD() { document.getElementById('dd').classList.toggle('open'); }
+    document.addEventListener('click', e => { if (!e.target.closest('.nav-right')) document.getElementById('dd').classList.remove('open'); });
+
+    let activeFilter = 'all';
+    let activeSubject = 'all';
+
+    function setFilter(type, btn) {
+        activeFilter = type;
+        document.querySelectorAll('.toolbar:first-of-type .filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filterCards();
+    }
+
+    function setSubject(subj, btn) {
+        activeSubject = subj;
+        document.querySelectorAll('.toolbar:last-of-type .filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filterCards();
+    }
+
+    function filterCards() {
+        const q = document.getElementById('search').value.toLowerCase();
+        document.querySelectorAll('.resource-card').forEach(card => {
+            const matchType    = activeFilter === 'all' || card.dataset.type === activeFilter;
+            const matchSubject = activeSubject === 'all' || card.dataset.subject === activeSubject;
+            const matchTitle   = card.dataset.title.includes(q) || (card.dataset.subject || '').includes(q);
+            card.style.display = matchType && matchSubject && matchTitle ? 'block' : 'none';
+        });
+    }
+</script>
+</body>
+</html>

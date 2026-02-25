@@ -1,0 +1,296 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Complaints — Faculty — Campus Connect</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+    <style>
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+        :root{--green:#00e676;--pink:#ff4d9e;--red:#ff6b6b;--yellow:#ffc107;--blue:#64b5f6;--dark:#0a0a0a;}
+        body{font-family:'DM Sans',sans-serif;background:var(--dark);color:#fff;min-height:100vh;}
+
+        /* NAV */
+        nav{display:flex;justify-content:space-between;align-items:center;padding:14px 40px;background:#0d0d0d;border-bottom:1px solid #1e1e1e;position:sticky;top:0;z-index:100;}
+        .nav-logo img{width:85px;}
+        .nav-center{display:flex;gap:6px;}
+        .nav-link{text-decoration:none;font-family:'Syne',sans-serif;font-size:0.76rem;letter-spacing:0.08em;padding:8px 18px;border-radius:50px;color:rgba(255,255,255,0.45);border:1px solid transparent;transition:all 0.2s;}
+        .nav-link:hover{color:#fff;background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.1);}
+        .nav-link.active{color:var(--red);border-color:rgba(255,107,107,0.25);background:rgba(255,107,107,0.06);}
+        .nav-right{display:flex;align-items:center;gap:10px;position:relative;}
+        .profile-btn{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:50px;padding:6px 14px 6px 6px;cursor:pointer;transition:all 0.2s;color:#fff;text-decoration:none;}
+        .profile-btn:hover{border-color:var(--green);}
+        .avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--pink));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:0.72rem;font-weight:700;color:#000;overflow:hidden;}
+        .avatar img{width:100%;height:100%;object-fit:cover;}
+        .profile-name{font-size:0.8rem;font-weight:500;}
+        .dropdown{position:absolute;top:calc(100% + 10px);right:0;background:#161616;border:1px solid #2a2a2a;border-radius:14px;padding:8px;min-width:180px;display:none;z-index:200;box-shadow:0 16px 40px rgba(0,0,0,0.5);}
+        .dropdown.open{display:block;animation:fadeUp 0.2s ease;}
+        .dropdown a{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;text-decoration:none;color:rgba(255,255,255,0.6);font-size:0.85rem;transition:all 0.15s;}
+        .dropdown a:hover{background:rgba(255,255,255,0.05);color:#fff;}
+        .dropdown hr{border:none;border-top:1px solid #222;margin:6px 0;}
+        .dropdown a.danger:hover{background:rgba(255,77,77,0.08);color:#ff6b6b;}
+
+        /* HEADER */
+        .page-header{padding:36px 40px 24px;border-bottom:1px solid #1a1a1a;display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;}
+        .page-header-left h1{font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;}
+        .page-header-left h1 span{color:var(--red);}
+        .page-header-left p{color:rgba(255,255,255,0.35);margin-top:6px;font-size:0.88rem;}
+        .header-stats{margin-left:auto;display:flex;gap:12px;flex-wrap:wrap;}
+        .stat-pill{padding:8px 16px;border-radius:50px;font-size:0.78rem;font-weight:600;font-family:'Syne',sans-serif;}
+        .stat-pending{background:rgba(255,255,255,0.04);border:1px solid #2a2a2a;color:rgba(255,255,255,0.4);}
+        .stat-viewed{background:rgba(255,193,7,0.08);border:1px solid rgba(255,193,7,0.2);color:var(--yellow);}
+        .stat-solved{background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.2);color:var(--green);}
+        .stat-urgent{background:rgba(255,68,68,0.08);border:1px solid rgba(255,68,68,0.2);color:#ff4444;}
+
+        /* FILTERS */
+        .filters{display:flex;gap:8px;padding:20px 40px 0;flex-wrap:wrap;}
+        .filter-btn{padding:7px 16px;border-radius:50px;font-size:0.74rem;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;border:1px solid #1e1e1e;background:transparent;color:rgba(255,255,255,0.35);transition:all 0.2s;}
+        .filter-btn:hover{border-color:#333;color:#fff;}
+        .filter-btn.active{color:var(--red);border-color:rgba(255,107,107,0.3);background:rgba(255,107,107,0.06);}
+
+        /* COMPLAINTS GRID */
+        .complaints-wrap{padding:24px 40px 40px;max-width:1100px;margin:0 auto;}
+
+        .complaint-card{background:#111;border:1px solid #1e1e1e;border-radius:16px;padding:22px;margin-bottom:14px;transition:border-color 0.2s;animation:fadeUp 0.4s ease both;position:relative;overflow:hidden;}
+        .complaint-card:hover{border-color:#2a2a2a;}
+        .complaint-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:16px 0 0 16px;background:var(--stripe,#2a2a2a);}
+        .complaint-card.st-pending{--stripe:#2a2a2a;}
+        .complaint-card.st-viewed{--stripe:var(--yellow);}
+        .complaint-card.st-solved{--stripe:var(--green);}
+
+        .cc-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;}
+        .student-av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--pink));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:0.78rem;font-weight:700;color:#000;flex-shrink:0;}
+        .cc-info{flex:1;}
+        .cc-student{font-size:0.8rem;color:rgba(255,255,255,0.5);margin-bottom:2px;}
+        .cc-heading{font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:700;}
+        .cc-badges{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;flex-shrink:0;}
+
+        .badge{font-size:0.62rem;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;padding:3px 9px;border-radius:50px;}
+        .badge-urgent{background:rgba(255,68,68,0.12);border:1px solid rgba(255,68,68,0.25);color:#ff4444;}
+        .badge-type{background:rgba(255,255,255,0.05);border:1px solid #2a2a2a;color:rgba(255,255,255,0.4);}
+        .badge-pending{background:rgba(255,255,255,0.04);border:1px solid #2a2a2a;color:rgba(255,255,255,0.3);}
+        .badge-viewed{background:rgba(255,193,7,0.1);border:1px solid rgba(255,193,7,0.2);color:var(--yellow);}
+        .badge-solved{background:rgba(0,230,118,0.1);border:1px solid rgba(0,230,118,0.2);color:var(--green);}
+
+        .cc-desc{font-size:0.83rem;color:rgba(255,255,255,0.45);line-height:1.65;margin-bottom:14px;}
+        .cc-meta{display:flex;gap:12px;font-size:0.74rem;color:rgba(255,255,255,0.25);flex-wrap:wrap;margin-bottom:14px;}
+
+        /* ACTION BUTTONS */
+        .cc-actions{display:flex;gap:8px;padding-top:12px;border-top:1px solid #1a1a1a;flex-wrap:wrap;}
+        .action-btn{display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:9px;font-size:0.78rem;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;border:1px solid;transition:all 0.2s;}
+        .btn-viewed{background:rgba(255,193,7,0.08);border-color:rgba(255,193,7,0.2);color:var(--yellow);}
+        .btn-viewed:hover{background:rgba(255,193,7,0.15);transform:translateY(-1px);}
+        .btn-solved{background:rgba(0,230,118,0.08);border-color:rgba(0,230,118,0.2);color:var(--green);}
+        .btn-solved:hover{background:rgba(0,230,118,0.15);transform:translateY(-1px);}
+        .btn-disabled{opacity:0.4;cursor:not-allowed;transform:none!important;}
+        .status-txt{font-size:0.76rem;color:rgba(255,255,255,0.25);display:flex;align-items:center;gap:5px;margin-left:auto;}
+        .sdot{width:7px;height:7px;border-radius:50%;}
+        .sdot-pending{background:#333;}
+        .sdot-viewed{background:var(--yellow);box-shadow:0 0 6px rgba(255,193,7,0.5);}
+        .sdot-solved{background:var(--green);box-shadow:0 0 6px rgba(0,230,118,0.5);}
+
+        .empty-state{text-align:center;padding:80px 20px;color:rgba(255,255,255,0.2);}
+        .empty-state .ei{font-size:3rem;margin-bottom:12px;}
+
+        @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+        @media(max-width:768px){.header-stats{margin-left:0;}.complaints-wrap{padding:20px;}.filters{padding:14px 20px 0;}}
+        @media(max-width:560px){nav{padding:12px 18px;}.nav-center{display:none;}.page-header{padding:24px 18px;}}
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="nav-logo"><a href="{% url 'home' %}"><img src="{% static 'images/logo.png' %}" alt="Campus Connect"/></a></div>
+    <div class="nav-center">
+        <a href="{% url 'announcements' %}" class="nav-link">📢 Announcements</a>
+        <a href="{% url 'study' %}" class="nav-link active">📚 Study</a>
+    </div>
+    <div class="nav-right">
+        <div class="profile-btn" onclick="toggleDD()">
+            <div class="avatar">
+                {% if profile and profile.avatar %}<img src="{{ profile.avatar.url }}" alt=""/>
+                {% elif user.first_name %}{{ user.first_name.0|upper }}
+                {% else %}{{ user.username.0|upper }}{% endif %}
+            </div>
+            <span class="profile-name">{{ user.first_name|default:user.username }}</span>
+            <span style="font-size:0.6rem;color:rgba(255,255,255,0.3);margin-left:2px;">▼</span>
+        </div>
+        <div class="dropdown" id="dd">
+            <a href="{% url 'profile' %}">👤 View Profile</a>
+            <a href="{% url 'edit_profile' %}">✏️ Edit Profile</a>
+            <hr/>
+            <a href="{% url 'logout' %}" class="danger">🚪 Logout</a>
+        </div>
+    </div>
+</nav>
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h1>📋 <span>Complaints</span> Inbox</h1>
+        <p>Complaints submitted to you by students.</p>
+    </div>
+    <div class="header-stats">
+        <span class="stat-pill stat-pending">⏳ {{ pending_count }} Pending</span>
+        <span class="stat-pill stat-viewed">👁 {{ viewed_count }} Viewed</span>
+        <span class="stat-pill stat-solved">✅ {{ solved_count }} Solved</span>
+        {% if urgent_count %}<span class="stat-pill stat-urgent">🔴 {{ urgent_count }} Urgent</span>{% endif %}
+    </div>
+</div>
+
+<!-- FILTERS -->
+<div class="filters">
+    <button class="filter-btn active" onclick="filterCards('all',this)">All</button>
+    <button class="filter-btn" onclick="filterCards('pending',this)">⏳ Pending</button>
+    <button class="filter-btn" onclick="filterCards('viewed',this)">👁 Viewed</button>
+    <button class="filter-btn" onclick="filterCards('solved',this)">✅ Solved</button>
+    <button class="filter-btn" onclick="filterCards('urgent',this)">🔴 Urgent</button>
+</div>
+
+<div class="complaints-wrap">
+{% if complaints %}
+    {% for c in complaints %}
+    <div class="complaint-card st-{{ c.status }}" id="card-{{ c.id }}"
+         data-status="{{ c.status }}" data-urgent="{{ c.urgency }}">
+
+        <div class="cc-top">
+            <div class="student-av">{{ c.student.first_name.0|upper|default:c.student.username.0|upper }}</div>
+            <div class="cc-info">
+                <div class="cc-student">From: <strong style="color:rgba(255,255,255,0.7)">{{ c.student.get_full_name|default:c.student.username }}</strong></div>
+                <div class="cc-heading">{{ c.heading }}</div>
+            </div>
+            <div class="cc-badges">
+                {% if c.urgency == 'urgent' %}<span class="badge badge-urgent">🔴 URGENT</span>{% endif %}
+                <span class="badge badge-type">{{ c.get_complaint_type_display }}</span>
+                <span class="badge badge-{{ c.status }}" id="badge-{{ c.id }}">
+                    {% if c.status == 'pending' %}⏳ Pending
+                    {% elif c.status == 'viewed' %}👁 Viewed
+                    {% else %}✅ Solved
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+
+        <div class="cc-desc">{{ c.description }}</div>
+
+        <div class="cc-meta">
+            <span>📅 {{ c.created_at|date:"d M Y, H:i" }}</span>
+            <span>🕐 Updated {{ c.updated_at|date:"d M Y, H:i" }}</span>
+        </div>
+
+        <div class="cc-actions">
+            <!-- Mark Viewed -->
+            <button class="action-btn btn-viewed {% if c.status != 'pending' %}btn-disabled{% endif %}"
+                    id="btn-viewed-{{ c.id }}"
+                    onclick="updateStatus({{ c.id }}, 'viewed')"
+                    {% if c.status != 'pending' %}disabled{% endif %}>
+                👁 Mark as Viewed
+            </button>
+
+            <!-- Mark Solved -->
+            <button class="action-btn btn-solved {% if c.status == 'solved' %}btn-disabled{% endif %}"
+                    id="btn-solved-{{ c.id }}"
+                    onclick="updateStatus({{ c.id }}, 'solved')"
+                    {% if c.status == 'solved' %}disabled{% endif %}>
+                ✅ Mark as Solved
+            </button>
+
+            <span class="status-txt" id="status-txt-{{ c.id }}">
+                <span class="sdot sdot-{{ c.status }}"></span>
+                {% if c.status == 'pending' %}Awaiting action
+                {% elif c.status == 'viewed' %}Student notified
+                {% else %}Resolved
+                {% endif %}
+            </span>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="empty-state">
+        <div class="ei">📭</div>
+        <p>No complaints in your inbox yet.</p>
+    </div>
+{% endif %}
+</div>
+
+<script>
+function toggleDD(){document.getElementById('dd').classList.toggle('open');}
+document.addEventListener('click',e=>{if(!e.target.closest('.nav-right'))document.getElementById('dd').classList.remove('open');});
+
+// ── Filter ─────────────────────────────────────────────────
+function filterCards(type, btn){
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.complaint-card').forEach(card=>{
+        if(type==='all') card.style.display='';
+        else if(type==='urgent') card.style.display = card.dataset.urgent==='urgent' ? '' : 'none';
+        else card.style.display = card.dataset.status===type ? '' : 'none';
+    });
+}
+
+// ── AJAX status update ─────────────────────────────────────
+async function updateStatus(id, status){
+    const btn = document.getElementById(`btn-${status}-${id}`);
+    if(btn.disabled) return;
+
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '⟳ Updating...';
+    btn.disabled  = true;
+
+    try {
+        const res = await fetch(`/study/complaints/status/${id}/`, {
+            method:  'POST',
+            headers: {'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
+            body:    JSON.stringify({status})
+        });
+        const data = await res.json();
+        if(data.ok){
+            // Update badge
+            const badge = document.getElementById(`badge-${id}`);
+            const card  = document.getElementById(`card-${id}`);
+            const txt   = document.getElementById(`status-txt-${id}`);
+
+            card.className = `complaint-card st-${status}`;
+            card.dataset.status = status;
+
+            if(status === 'viewed'){
+                badge.className  = 'badge badge-viewed';
+                badge.innerHTML  = '👁 Viewed';
+                txt.innerHTML    = '<span class="sdot sdot-viewed"></span> Student notified';
+                // disable viewed btn, enable solved
+                btn.classList.add('btn-disabled');
+                const solvedBtn = document.getElementById(`btn-solved-${id}`);
+                solvedBtn.disabled = false;
+                solvedBtn.classList.remove('btn-disabled');
+            } else {
+                badge.className  = 'badge badge-solved';
+                badge.innerHTML  = '✅ Solved';
+                txt.innerHTML    = '<span class="sdot sdot-solved"></span> Resolved';
+                // disable both
+                document.getElementById(`btn-viewed-${id}`).classList.add('btn-disabled');
+                btn.classList.add('btn-disabled');
+            }
+        } else {
+            btn.innerHTML = originalText;
+            btn.disabled  = false;
+            alert('Error: ' + (data.error || 'Unknown'));
+        }
+    } catch(e){
+        btn.innerHTML = originalText;
+        btn.disabled  = false;
+        alert('Network error');
+    }
+}
+
+function getCookie(name){
+    let v=null;
+    document.cookie.split(';').forEach(c=>{
+        c=c.trim();
+        if(c.startsWith(name+'=')) v=decodeURIComponent(c.slice(name.length+1));
+    });
+    return v;
+}
+</script>
+</body>
+</html>

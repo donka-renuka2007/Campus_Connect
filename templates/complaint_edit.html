@@ -1,0 +1,109 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Edit Complaint — Campus Connect</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+    <style>
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+        :root{--green:#00e676;--pink:#ff4d9e;--red:#ff6b6b;--yellow:#ffc107;--dark:#0a0a0a;}
+        body{font-family:'DM Sans',sans-serif;background:var(--dark);color:#fff;min-height:100vh;}
+        nav{display:flex;justify-content:space-between;align-items:center;padding:14px 40px;background:#0d0d0d;border-bottom:1px solid #1e1e1e;position:sticky;top:0;z-index:100;}
+        .nav-logo img{width:85px;}
+        .back-link{display:flex;align-items:center;gap:6px;text-decoration:none;color:rgba(255,255,255,0.4);font-size:0.8rem;padding:6px 14px;border-radius:8px;border:1px solid #1e1e1e;transition:all 0.2s;}
+        .back-link:hover{color:#fff;border-color:#333;}
+        .wrap{max-width:600px;margin:48px auto;padding:0 24px;}
+        .edit-card{background:#111;border:1px solid #1e1e1e;border-radius:20px;padding:32px;}
+        .edit-card h1{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;margin-bottom:6px;}
+        .edit-card h1 span{color:var(--yellow);}
+        .subtitle{color:rgba(255,255,255,0.35);font-size:0.84rem;margin-bottom:24px;}
+        .form-group{margin-bottom:18px;}
+        .form-group label{display:block;font-size:0.74rem;font-weight:500;color:rgba(255,255,255,0.4);margin-bottom:6px;letter-spacing:0.04em;text-transform:uppercase;}
+        .form-group input,.form-group select,.form-group textarea{width:100%;background:#161616;border:1px solid #2a2a2a;border-radius:10px;color:#fff;font-family:'DM Sans',sans-serif;font-size:0.85rem;padding:10px 14px;outline:none;transition:border-color 0.2s;}
+        .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:rgba(255,193,7,0.4);}
+        .form-group textarea{resize:vertical;min-height:100px;line-height:1.6;}
+        .form-group select option{background:#1a1a1a;}
+        .urgency-row{display:flex;gap:10px;}
+        .urgency-opt{flex:1;}
+        .urgency-opt input[type=radio]{display:none;}
+        .urgency-opt label{display:flex;align-items:center;justify-content:center;gap:6px;padding:9px;border-radius:10px;border:1px solid #2a2a2a;cursor:pointer;font-size:0.82rem;color:rgba(255,255,255,0.4);transition:all 0.2s;background:#161616;}
+        .urgency-opt input:checked + label{border-color:rgba(255,193,7,0.4);background:rgba(255,193,7,0.06);color:var(--yellow);}
+        .urgency-opt.u-urgent input:checked + label{border-color:rgba(255,68,68,0.4);background:rgba(255,68,68,0.08);color:#ff4444;}
+        .btn-row{display:flex;gap:10px;margin-top:6px;}
+        .save-btn{flex:1;padding:12px;background:var(--yellow);border:none;border-radius:10px;color:#000;font-family:'Syne',sans-serif;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.2s;}
+        .save-btn:hover{background:#ffd54f;box-shadow:0 4px 14px rgba(255,193,7,0.3);}
+        .cancel-btn{padding:12px 20px;background:transparent;border:1px solid #2a2a2a;border-radius:10px;color:rgba(255,255,255,0.35);font-family:'Syne',sans-serif;font-size:0.85rem;cursor:pointer;text-decoration:none;transition:all 0.2s;text-align:center;}
+        .cancel-btn:hover{border-color:#444;color:#fff;}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+        .edit-card{animation:fadeUp 0.4s ease;}
+    </style>
+</head>
+<body>
+<nav>
+    <div class="nav-logo"><a href="{% url 'home' %}"><img src="{% static 'images/logo.png' %}" alt="Campus Connect"/></a></div>
+    <a href="{% url 'complaint_student' %}" class="back-link">← Back to Complaints</a>
+</nav>
+
+<div class="wrap">
+    <div class="edit-card">
+        <h1>✏️ <span>Edit</span> Complaint</h1>
+        <p class="subtitle">You can only edit complaints that haven't been viewed yet.</p>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label>Send To (Teacher)</label>
+                <select name="teacher" required>
+                    {% for teacher in teachers %}
+                    <option value="{{ teacher.id }}" {% if teacher == complaint.teacher %}selected{% endif %}>
+                        {{ teacher.get_full_name|default:teacher.username }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Complaint Type</label>
+                <select name="complaint_type" required>
+                    {% for val, label in type_choices %}
+                    <option value="{{ val }}" {% if val == complaint.complaint_type %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Heading</label>
+                <input type="text" name="heading" value="{{ complaint.heading }}" maxlength="200" required/>
+            </div>
+
+            <div class="form-group">
+                <label>Description</label>
+                <textarea name="description" required>{{ complaint.description }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Urgency</label>
+                <div class="urgency-row">
+                    <div class="urgency-opt">
+                        <input type="radio" name="urgency" id="u-normal" value="normal" {% if complaint.urgency == 'normal' %}checked{% endif %}/>
+                        <label for="u-normal">🟢 Normal</label>
+                    </div>
+                    <div class="urgency-opt u-urgent">
+                        <input type="radio" name="urgency" id="u-urgent" value="urgent" {% if complaint.urgency == 'urgent' %}checked{% endif %}/>
+                        <label for="u-urgent">🔴 Urgent</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="btn-row">
+                <a href="{% url 'complaint_student' %}" class="cancel-btn">Cancel</a>
+                <button type="submit" class="save-btn">💾 Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

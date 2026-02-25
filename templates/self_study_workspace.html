@@ -1,0 +1,406 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ resource.title }} — Self Study</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --green:#00e676;--pink:#ff4d9e;--dark:#0a0a0a;--yellow:#ffc107;--blue:#64b5f6;--border:#1e1e1e;--muted:rgba(255,255,255,0.3); }
+        html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;background:var(--dark);color:#fff;}
+        .page{display:flex;flex-direction:column;height:100vh;}
+        /* TOPBAR */
+        .topbar{display:flex;align-items:center;gap:10px;padding:9px 18px;background:#0d0d0d;border-bottom:1px solid var(--border);flex-shrink:0;}
+        .back-btn{display:flex;align-items:center;gap:5px;text-decoration:none;color:rgba(255,255,255,0.4);font-size:0.78rem;padding:5px 12px;border-radius:8px;border:1px solid var(--border);transition:all 0.2s;white-space:nowrap;}
+        .back-btn:hover{color:#fff;border-color:#333;}
+        .doc-title{font-family:'Syne',sans-serif;font-size:0.88rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px;}
+        .badge{font-size:0.62rem;font-weight:700;letter-spacing:0.08em;padding:3px 10px;border-radius:50px;background:rgba(255,193,7,0.1);border:1px solid rgba(255,193,7,0.2);color:var(--yellow);}
+        .subj-badge{font-size:0.72rem;padding:4px 12px;border-radius:50px;background:#111;border:1px solid var(--border);color:rgba(255,255,255,0.35);}
+        .dl-btn{margin-left:auto;padding:6px 14px;border-radius:8px;font-size:0.76rem;background:transparent;border:1px solid var(--border);color:rgba(255,255,255,0.3);text-decoration:none;transition:all 0.2s;}
+        .dl-btn:hover{border-color:var(--green);color:var(--green);}
+        /* WORKSPACE */
+        .workspace{display:flex;flex:1;overflow:hidden;min-height:0;}
+        /* FILE PANE */
+        .file-pane{display:flex;flex-direction:column;width:50%;flex-shrink:0;border-right:1px solid #1a1a1a;}
+        .pane-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid #1a1a1a;background:#0d0d0d;flex-shrink:0;}
+        .pane-label{font-family:'Syne',sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:0.08em;color:var(--muted);}
+        .focus-btn{margin-left:auto;padding:3px 10px;border-radius:6px;font-size:0.72rem;background:transparent;border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all 0.2s;}
+        .focus-btn:hover{border-color:var(--yellow);color:var(--yellow);}
+        .file-viewer{flex:1;overflow:hidden;background:#111;}
+        .file-viewer iframe,.file-viewer img{width:100%;height:100%;border:none;}
+        .no-preview{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:14px;color:var(--muted);text-align:center;padding:30px;}
+        .no-preview span{font-size:3rem;}
+        .no-preview a{padding:10px 24px;border-radius:50px;background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.2);color:var(--green);font-size:0.82rem;text-decoration:none;}
+        /* DRAG */
+        .drag-handle{width:5px;background:#1a1a1a;cursor:col-resize;flex-shrink:0;transition:background 0.15s;}
+        .drag-handle:hover,.drag-handle.active{background:var(--yellow);}
+        /* RIGHT PANE */
+        .right-pane{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden;}
+        /* TABS */
+        .tab-bar{display:flex;align-items:center;gap:6px;padding:7px 14px;background:#0d0d0d;border-bottom:1px solid var(--border);flex-shrink:0;}
+        .tool-tab{padding:5px 16px;border-radius:8px;font-family:'Syne',sans-serif;font-size:0.72rem;font-weight:700;cursor:pointer;border:1px solid var(--border);background:transparent;color:rgba(255,255,255,0.3);transition:all 0.2s;}
+        .tool-tab:hover{color:#fff;border-color:#333;}
+        .tool-tab.active-compiler{color:var(--blue);border-color:rgba(100,181,246,0.3);background:rgba(100,181,246,0.06);}
+        .tool-tab.active-chatbot{color:var(--green);border-color:rgba(0,230,118,0.3);background:rgba(0,230,118,0.06);}
+        /* COMPILER */
+        .compiler-panel{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden;background:#0a0a0a;}
+        .compiler-panel.hidden{display:none;}
+        .c-toolbar{display:flex;align-items:center;gap:8px;padding:7px 14px;background:#0d0d0d;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
+        .c-toolbar-left{display:flex;align-items:center;gap:8px;flex:1;flex-wrap:wrap;}
+        .lang-sel{background:#161616;border:1px solid #2a2a2a;border-radius:7px;color:#fff;font-family:'DM Sans',sans-serif;font-size:0.82rem;padding:5px 10px;cursor:pointer;outline:none;}
+        .lang-sel:focus{border-color:var(--green);}
+        .c-btn{background:#161616;border:1px solid #2a2a2a;border-radius:7px;color:var(--muted);font-size:0.78rem;padding:5px 10px;cursor:pointer;transition:all 0.2s;}
+        .c-btn:hover{border-color:#444;color:#fff;}
+        .run-btn{background:var(--green);border:none;border-radius:7px;color:#000;font-family:'Syne',sans-serif;font-size:0.78rem;font-weight:700;padding:6px 18px;cursor:pointer;transition:all 0.2s;}
+        .run-btn:hover{background:#00ff88;box-shadow:0 3px 14px rgba(0,230,118,0.3);}
+        .run-btn.running{background:#ffc107;}
+        .clear-btn{background:transparent;border:1px solid #2a2a2a;border-radius:7px;color:rgba(255,255,255,0.3);font-size:0.78rem;padding:6px 12px;cursor:pointer;transition:all 0.2s;}
+        .clear-btn:hover{border-color:var(--pink);color:var(--pink);}
+        .editor-section{flex:1;display:flex;flex-direction:column;border-bottom:1px solid var(--border);min-height:0;}
+        .sec-header{display:flex;align-items:center;justify-content:space-between;padding:5px 14px;background:#0e0e0e;border-bottom:1px solid var(--border);font-family:'Syne',sans-serif;font-size:0.68rem;letter-spacing:0.07em;color:var(--muted);flex-shrink:0;}
+        .dots{display:flex;gap:4px;}
+        .dot{width:9px;height:9px;border-radius:50%;}
+        .dot.r{background:#ff5f57}.dot.y{background:#ffbd2e}.dot.g{background:#28c840}
+        .editor-wrap{flex:1;display:flex;overflow:hidden;min-height:0;}
+        .line-numbers{background:#0e0e0e;padding:12px 10px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;color:#333;text-align:right;user-select:none;min-width:42px;border-right:1px solid #1a1a1a;overflow:hidden;white-space:pre;flex-shrink:0;}
+        .code-editor{flex:1;background:#0c0c0c;color:#e0e0e0;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;padding:12px 14px;border:none;outline:none;resize:none;tab-size:2;white-space:pre-wrap;word-break:break-all;overflow:auto;caret-color:var(--green);}
+        .code-editor::selection{background:rgba(0,230,118,0.18);}
+        .code-editor::-webkit-scrollbar{width:5px;}
+        .code-editor::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:3px;}
+        .bottom-section{height:38%;display:flex;flex-shrink:0;}
+        .io-panel{flex:1;display:flex;flex-direction:column;min-width:0;}
+        .io-panel+.io-panel{border-left:1px solid var(--border);}
+        .io-header{display:flex;align-items:center;justify-content:space-between;padding:5px 12px;background:#0e0e0e;border-bottom:1px solid var(--border);font-family:'Syne',sans-serif;font-size:0.66rem;letter-spacing:0.07em;color:var(--muted);flex-shrink:0;}
+        .io-clear{padding:2px 7px;border-radius:5px;font-size:0.65rem;background:transparent;border:1px solid #2a2a2a;color:var(--muted);cursor:pointer;transition:all 0.2s;}
+        .io-clear:hover{border-color:var(--pink);color:var(--pink);}
+        .stdin-area{flex:1;background:#0c0c0c;color:#ccc;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.6;padding:10px 12px;border:none;outline:none;resize:none;}
+        .stdin-area::placeholder{color:#252525;}
+        .output-box{flex:1;background:#090909;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.6;padding:10px 12px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;}
+        .output-box::-webkit-scrollbar{width:4px;}
+        .output-box::-webkit-scrollbar-thumb{background:#2a2a2a;}
+        .out-idle{color:#252525;font-style:italic;}.out-ok{color:#a5d6a7;}.out-err{color:#ff6b6b;}
+        .c-status{display:flex;align-items:center;justify-content:space-between;padding:3px 14px;background:#0d0d0d;border-top:1px solid var(--border);font-size:0.68rem;color:var(--muted);flex-shrink:0;}
+        .s-lang{color:var(--green);font-family:'Syne',sans-serif;font-weight:700;font-size:0.68rem;}
+        .s-info{display:flex;gap:12px;}
+        /* RAG CHATBOT */
+        .chatbot-panel{flex:1;display:none;flex-direction:column;overflow:hidden;background:#0a0a0a;}
+        .chatbot-panel.visible{display:flex;}
+        .chat-messages{flex:1;overflow-y:auto;padding:14px 12px;display:flex;flex-direction:column;gap:12px;}
+        .chat-messages::-webkit-scrollbar{width:4px;}
+        .chat-messages::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:3px;}
+        .chat-msg{display:flex;gap:9px;align-items:flex-start;}
+        .chat-msg.user{flex-direction:row-reverse;}
+        .chat-avatar{width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;}
+        .chat-avatar.bot{background:rgba(0,230,118,0.1);border:1px solid rgba(0,230,118,0.2);color:var(--green);}
+        .chat-avatar.user{background:rgba(100,181,246,0.1);border:1px solid rgba(100,181,246,0.2);color:var(--blue);}
+        .chat-bubble{padding:9px 12px;border-radius:10px;font-size:0.81rem;line-height:1.65;max-width:calc(100% - 44px);word-break:break-word;}
+        .chat-msg.bot .chat-bubble{background:#131313;border:1px solid #1e1e1e;color:#ddd;border-radius:4px 10px 10px 10px;}
+        .chat-msg.user .chat-bubble{background:rgba(0,230,118,0.07);border:1px solid rgba(0,230,118,0.15);color:#c8f0da;border-radius:10px 4px 10px 10px;}
+        .chat-bubble pre{font-family:'JetBrains Mono',monospace;font-size:0.72rem;background:#0c0c0c;border:1px solid #2a2a2a;border-radius:6px;padding:8px 10px;margin-top:6px;overflow-x:auto;white-space:pre-wrap;}
+        .chat-bubble code{font-family:'JetBrains Mono',monospace;font-size:0.75rem;background:#1a1a1a;padding:1px 5px;border-radius:4px;}
+        .chat-bubble strong{color:#fff;}
+        .chat-bubble ul,.chat-bubble ol{padding-left:16px;margin-top:4px;}
+        .chat-bubble li{margin-bottom:3px;}
+        .typing-dots{display:flex;gap:4px;align-items:center;padding:2px 0;}
+        .typing-dots span{width:6px;height:6px;border-radius:50%;background:var(--green);animation:tdot 1.2s infinite;}
+        .typing-dots span:nth-child(2){animation-delay:0.2s;}
+        .typing-dots span:nth-child(3){animation-delay:0.4s;}
+        @keyframes tdot{0%,80%,100%{opacity:0.2;transform:scale(0.8)}40%{opacity:1;transform:scale(1)}}
+        .chat-welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:10px;color:var(--muted);text-align:center;padding:20px;}
+        .chat-welcome .w-icon{font-size:2.2rem;}
+        .chat-welcome h3{font-family:'Syne',sans-serif;font-size:0.92rem;font-weight:700;color:rgba(255,255,255,0.45);}
+        .chat-welcome p{font-size:0.76rem;line-height:1.6;max-width:200px;}
+        .suggestions{display:flex;flex-direction:column;gap:5px;margin-top:6px;width:100%;max-width:240px;}
+        .sug-btn{padding:7px 11px;border-radius:8px;background:#111;border:1px solid #1e1e1e;color:rgba(255,255,255,0.4);font-size:0.72rem;cursor:pointer;text-align:left;transition:all 0.2s;}
+        .sug-btn:hover{border-color:rgba(0,230,118,0.25);color:var(--green);background:rgba(0,230,118,0.04);}
+        .chat-input-bar{display:flex;align-items:flex-end;gap:7px;padding:9px 11px;background:#0d0d0d;border-top:1px solid var(--border);flex-shrink:0;}
+        .chat-textarea{flex:1;background:#141414;border:1px solid #2a2a2a;border-radius:9px;color:#e0e0e0;font-family:'DM Sans',sans-serif;font-size:0.81rem;padding:8px 11px;outline:none;resize:none;line-height:1.5;max-height:100px;overflow-y:auto;transition:border-color 0.2s;}
+        .chat-textarea:focus{border-color:rgba(0,230,118,0.3);}
+        .chat-textarea::placeholder{color:#2a2a2a;}
+        .chat-send{background:var(--green);border:none;border-radius:9px;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;color:#000;font-size:0.9rem;}
+        .chat-send:hover{background:#00ff88;box-shadow:0 3px 12px rgba(0,230,118,0.3);}
+        .chat-send:disabled{background:#1a1a1a;color:#333;cursor:not-allowed;box-shadow:none;}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .spinner{display:inline-block;animation:spin 0.6s linear infinite;}
+        @media(max-width:768px){
+            .workspace{flex-direction:column;}
+            .file-pane{width:100%!important;height:45%;border-right:none;border-bottom:1px solid #1a1a1a;}
+            .drag-handle{display:none;}
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <div class="topbar">
+        <a href="{% url 'self_study' %}" class="back-btn">← Back</a>
+        <span class="doc-title">{{ resource.title }}</span>
+        <span class="badge">{{ resource.file_type|upper }}</span>
+        <span class="subj-badge">📘 {{ resource.subject }}</span>
+        <a href="{{ resource.file.url }}" download class="dl-btn">⬇ Download</a>
+    </div>
+    <div class="workspace" id="workspace">
+        <!-- FILE VIEWER -->
+        <div class="file-pane" id="file-pane">
+            <div class="pane-bar">
+                <span class="pane-label">📄 Document</span>
+                <button class="focus-btn" onclick="toggleFocus()">⛶ Focus</button>
+            </div>
+            <div class="file-viewer">
+                {% if resource.file_type == 'pdf' %}
+                    <iframe src="{{ resource.file.url }}" title="{{ resource.title }}"></iframe>
+                {% elif resource.file_type == 'img' %}
+                    <img src="{{ resource.file.url }}" alt="{{ resource.title }}" />
+                {% elif resource.file_type == 'doc' or resource.file_type == 'ppt' %}
+                    <iframe src="https://docs.google.com/gview?url={{ request.scheme }}://{{ request.get_host }}{{ resource.file.url }}&embedded=true" title="{{ resource.title }}"></iframe>
+                {% else %}
+                    <div class="no-preview">
+                        <span>📎</span><p>Preview not available.<br>Download to view.</p>
+                        <a href="{{ resource.file.url }}" download>⬇ Download File</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="drag-handle" id="drag-handle"></div>
+        <!-- RIGHT PANE -->
+        <div class="right-pane" id="right-pane">
+            <div class="tab-bar">
+                <button class="tool-tab active-compiler" id="tab-compiler" onclick="switchTool('compiler')">💻 Compiler</button>
+                <button class="tool-tab" id="tab-chatbot" onclick="switchTool('chatbot')">🤖 AI Bot</button>
+            </div>
+            <!-- COMPILER -->
+            <div class="compiler-panel" id="compiler-panel">
+                <div class="c-toolbar">
+                    <div class="c-toolbar-left">
+                        <select class="lang-sel" id="langSelect" onchange="onLangChange()">
+                            <option value="python">🐍 Python 3</option>
+                            <option value="javascript">🟨 JavaScript</option>
+                            <option value="c">⚙️ C</option>
+                            <option value="cpp">⚙️ C++</option>
+                            <option value="java">☕ Java</option>
+                            <option value="go">🐹 Go</option>
+                            <option value="rust">🦀 Rust</option>
+                            <option value="php">🐘 PHP</option>
+                            <option value="ruby">💎 Ruby</option>
+                            <option value="bash">🖥️ Bash</option>
+                        </select>
+                        <button class="c-btn" onclick="copyCode()">📋 Copy</button>
+                        <button class="c-btn" onclick="formatCode()">⚡ Format</button>
+                    </div>
+                    <button class="clear-btn" onclick="clearAll()">✕ Clear</button>
+                    <button class="run-btn" id="runBtn" onclick="runCode()">▶ Run</button>
+                </div>
+                <div class="editor-section">
+                    <div class="sec-header">
+                        <div class="dots"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+                        <span id="fileLabel">main.py</span>
+                        <span id="cursorPos">Ln 1, Col 1</span>
+                    </div>
+                    <div class="editor-wrap">
+                        <div class="line-numbers" id="lineNumbers">1</div>
+                        <textarea class="code-editor" id="codeEditor" spellcheck="false" autocorrect="off" autocapitalize="off"
+                            oninput="onEditorInput()" onkeydown="handleTab(event)"
+                            onclick="updateCursor()" onkeyup="updateCursor()" onscroll="syncScroll()"></textarea>
+                    </div>
+                </div>
+                <div class="bottom-section">
+                    <div class="io-panel">
+                        <div class="io-header"><span>📥 INPUT</span><button class="io-clear" onclick="document.getElementById('stdinArea').value=''">Clear</button></div>
+                        <textarea class="stdin-area" id="stdinArea" placeholder="Enter input here..."></textarea>
+                    </div>
+                    <div class="io-panel">
+                        <div class="io-header"><span>📤 OUTPUT</span><div style="display:flex;gap:5px"><button class="io-clear" onclick="clearOutput()">Clear</button><button class="io-clear" onclick="copyOutput()">Copy</button></div></div>
+                        <div class="output-box" id="outputBox"><span class="out-idle">// Run your code to see output...</span></div>
+                    </div>
+                </div>
+                <div class="c-status">
+                    <span class="s-lang" id="statusLang">Python 3</span>
+                    <div class="s-info"><span id="charCount">0 chars</span><span id="lineCount">1 lines</span><span>UTF-8</span><span id="execTime"></span></div>
+                </div>
+            </div>
+            <!-- RAG CHATBOT -->
+            <div class="chatbot-panel" id="chatbot-panel">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="chat-welcome" id="chatWelcome">
+                        <div class="w-icon">🤖</div>
+                        <h3>AI Study Assistant</h3>
+                        <p>Ask questions about <strong style="color:#fff">{{ resource.title }}</strong></p>
+                        <div class="suggestions">
+                            <button class="sug-btn" onclick="quickAsk('Summarize the key concepts in this document')">📝 Summarize key concepts</button>
+                            <button class="sug-btn" onclick="quickAsk('Explain the main topic in simple terms')">💡 Explain simply</button>
+                            <button class="sug-btn" onclick="quickAsk('Give me 5 practice questions based on this document')">❓ Practice questions</button>
+                            <button class="sug-btn" onclick="quickAsk('What are the most important points to remember?')">🎯 Important points</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-input-bar">
+                    <textarea class="chat-textarea" id="chatInput" placeholder="Ask about the document..." rows="1"
+                        onkeydown="handleChatKey(event)" oninput="autoResize(this)"></textarea>
+                    <button class="chat-send" id="chatSend" onclick="sendChatMessage()">➤</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+// ── TABS ──────────────────────────────────────────────────────────
+let activeTool='compiler';
+function switchTool(tool){
+    if(tool===activeTool)return; activeTool=tool;
+    document.getElementById('tab-compiler').className='tool-tab'+(tool==='compiler'?' active-compiler':'');
+    document.getElementById('tab-chatbot').className='tool-tab'+(tool==='chatbot'?' active-chatbot':'');
+    document.getElementById('compiler-panel').classList.toggle('hidden',tool!=='compiler');
+    document.getElementById('chatbot-panel').classList.toggle('visible',tool==='chatbot');
+}
+// ── COMPILER ──────────────────────────────────────────────────────
+let currentLang='python',startTime=null;
+const templates={
+  python:`# Python 3\ndef greet(name):\n    return f"Hello, {name}!"\n\nname = input("Enter your name: ")\nprint(greet(name))\n`,
+  javascript:`// JavaScript\nfunction greet(name){\n  return \`Hello, \${name}!\`;\n}\nconsole.log(greet("World"));\n`,
+  c:`#include <stdio.h>\nint main(){\n    printf("Hello, World!\\n");\n    return 0;\n}\n`,
+  cpp:`#include <iostream>\nusing namespace std;\nint main(){\n    cout<<"Hello, World!"<<endl;\n    return 0;\n}\n`,
+  java:`public class Main{\n    public static void main(String[] args){\n        System.out.println("Hello, World!");\n    }\n}\n`,
+  go:`package main\nimport "fmt"\nfunc main(){\n    fmt.Println("Hello, World!")\n}\n`,
+  rust:`fn main(){\n    println!("Hello, World!");\n}\n`,
+  php:`<?php\necho "Hello, World!\\n";\n?>`,
+  ruby:`puts "Hello, World!"`,
+  bash:`#!/bin/bash\necho "Hello, World!"`,
+};
+const fileNames={python:'main.py',javascript:'main.js',c:'main.c',cpp:'main.cpp',java:'Main.java',go:'main.go',rust:'main.rs',php:'index.php',ruby:'main.rb',bash:'script.sh'};
+const langNames={python:'Python 3',javascript:'JavaScript',c:'C',cpp:'C++',java:'Java',go:'Go',rust:'Rust',php:'PHP',ruby:'Ruby',bash:'Bash'};
+const j0map={python:71,javascript:63,c:50,cpp:54,java:62,go:60,rust:73,php:68,ruby:72,bash:46};
+window.onload=()=>{document.getElementById('codeEditor').value=templates.python;onEditorInput();};
+function onLangChange(){
+    currentLang=document.getElementById('langSelect').value;
+    document.getElementById('codeEditor').value=templates[currentLang]||'';
+    document.getElementById('fileLabel').textContent=fileNames[currentLang]||'main';
+    document.getElementById('statusLang').textContent=langNames[currentLang]||currentLang;
+    onEditorInput();clearOutput();
+}
+function onEditorInput(){updateLineNumbers();updateStatus();}
+function updateLineNumbers(){
+    const lines=document.getElementById('codeEditor').value.split('\n').length;
+    document.getElementById('lineNumbers').textContent=Array.from({length:lines},(_,i)=>i+1).join('\n');
+}
+function syncScroll(){document.getElementById('lineNumbers').scrollTop=document.getElementById('codeEditor').scrollTop;}
+function updateStatus(){
+    const v=document.getElementById('codeEditor').value;
+    document.getElementById('charCount').textContent=v.length+' chars';
+    document.getElementById('lineCount').textContent=v.split('\n').length+' lines';
+}
+function updateCursor(){
+    const ed=document.getElementById('codeEditor');
+    const val=ed.value.substring(0,ed.selectionStart).split('\n');
+    document.getElementById('cursorPos').textContent=`Ln ${val.length}, Col ${val[val.length-1].length+1}`;
+}
+function handleTab(e){
+    if(e.key==='Tab'){e.preventDefault();const ed=document.getElementById('codeEditor'),s=ed.selectionStart;ed.value=ed.value.substring(0,s)+'  '+ed.value.substring(ed.selectionEnd);ed.selectionStart=ed.selectionEnd=s+2;onEditorInput();}
+    if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();runCode();}
+}
+function formatCode(){const ed=document.getElementById('codeEditor');ed.value=ed.value.replace(/\t/g,'  ').split('\n').map(l=>l.trimEnd()).join('\n');onEditorInput();}
+function copyCode(){navigator.clipboard.writeText(document.getElementById('codeEditor').value).then(()=>toast('Copied!'));}
+function copyOutput(){navigator.clipboard.writeText(document.getElementById('outputBox').innerText).then(()=>toast('Copied!'));}
+function clearAll(){document.getElementById('codeEditor').value='';document.getElementById('stdinArea').value='';clearOutput();onEditorInput();}
+function clearOutput(){document.getElementById('outputBox').innerHTML='<span class="out-idle">// Run your code to see output...</span>';document.getElementById('execTime').textContent='';}
+async function runCode(){
+    const code=document.getElementById('codeEditor').value.trim();if(!code)return;
+    const stdin=document.getElementById('stdinArea').value;
+    const btn=document.getElementById('runBtn');btn.textContent='⟳ Running';btn.classList.add('running');
+    showOut('<span class="spinner">⟳</span> Running...','');startTime=Date.now();
+    try{
+        const sub=await fetch('https://ce.judge0.com/submissions?base64_encoded=false&wait=false',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({source_code:code,language_id:j0map[currentLang],stdin})});
+        const{token}=await sub.json();if(!token){showOut('❌ Submission failed.','err');return;}
+        let result;
+        for(let i=0;i<20;i++){await new Promise(r=>setTimeout(r,800));result=await(await fetch(`https://ce.judge0.com/submissions/${token}?base64_encoded=false`)).json();if(result.status?.id>=3)break;}
+        document.getElementById('execTime').textContent=`⏱ ${((Date.now()-startTime)/1000).toFixed(2)}s`;
+        const{stdout='',stderr='',compile_output='',status}=result,sid=status?.id;
+        if(sid===3){const out=(stdout+(stderr?'\n⚠ STDERR:\n'+stderr:'')).trim();showOut(out?esc(out):'// No output.',out?'ok':'idle');}
+        else if(sid===6){showOut('❌ Compile Error:\n\n'+esc(compile_output||stderr),'err');}
+        else if(sid===5){showOut('⏱ Time Limit Exceeded','err');}
+        else{showOut(`⚠ ${status?.description||'Error'}\n\n`+esc((compile_output||stderr||stdout).trim()),'err');}
+    }catch(e){showOut('❌ Network error.\n'+e.message,'err');}
+    btn.textContent='▶ Run';btn.classList.remove('running');
+}
+function showOut(html,type){const box=document.getElementById('outputBox');box.innerHTML='';const pre=document.createElement('pre');pre.className=type==='ok'?'out-ok':type==='err'?'out-err':'out-idle';pre.innerHTML=html;box.appendChild(pre);}
+// ── RAG CHATBOT ───────────────────────────────────────────────────
+let chatHistory=[],chatBusy=false;
+const RESOURCE_ID={{ resource.id }};
+function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,100)+'px';}
+function handleChatKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChatMessage();}}
+function quickAsk(text){document.getElementById('chatInput').value=text;sendChatMessage();}
+function removeWelcome(){const w=document.getElementById('chatWelcome');if(w)w.remove();}
+function appendChatMsg(role,html){
+    const wrap=document.getElementById('chatMessages');
+    const msg=document.createElement('div');msg.className=`chat-msg ${role}`;
+    const av=document.createElement('div');av.className=`chat-avatar ${role}`;av.textContent=role==='bot'?'🤖':'👤';
+    const bubble=document.createElement('div');bubble.className='chat-bubble';bubble.innerHTML=html;
+    msg.appendChild(av);msg.appendChild(bubble);wrap.appendChild(msg);wrap.scrollTop=wrap.scrollHeight;
+    return bubble;
+}
+function showTyping(){
+    const wrap=document.getElementById('chatMessages');
+    const msg=document.createElement('div');msg.className='chat-msg bot';msg.id='typing-indicator';
+    const av=document.createElement('div');av.className='chat-avatar bot';av.textContent='🤖';
+    const bubble=document.createElement('div');bubble.className='chat-bubble';
+    bubble.innerHTML='<div class="typing-dots"><span></span><span></span><span></span></div>';
+    msg.appendChild(av);msg.appendChild(bubble);wrap.appendChild(msg);wrap.scrollTop=wrap.scrollHeight;
+}
+function removeTyping(){const t=document.getElementById('typing-indicator');if(t)t.remove();}
+function formatBotText(text){
+    text=text.replace(/```(\w*)\n?([\s\S]*?)```/g,(_,lang,code)=>`<pre><code>${esc(code.trim())}</code></pre>`);
+    text=text.replace(/`([^`]+)`/g,(_,c)=>`<code>${esc(c)}</code>`);
+    text=text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+    text=text.replace(/^\s*[-*]\s+(.+)$/gm,'<li>$1</li>');
+    text=text.replace(/(<li>[\s\S]*<\/li>)/,'<ul>$1</ul>');
+    text=text.replace(/^\s*\d+\.\s+(.+)$/gm,'<li>$1</li>');
+    text=text.replace(/\n/g,'<br>');
+    return text;
+}
+async function sendChatMessage(){
+    const input=document.getElementById('chatInput');
+    const question=input.value.trim();
+    if(!question||chatBusy)return;
+    removeWelcome();
+    appendChatMsg('user',esc(question));
+    input.value='';input.style.height='auto';
+    chatBusy=true;document.getElementById('chatSend').disabled=true;
+    showTyping();
+    try{
+        const resp=await fetch(`/study/rag-chat/${RESOURCE_ID}/`,{
+            method:'POST',
+            headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
+            body:JSON.stringify({question,history:chatHistory})
+        });
+        removeTyping();
+        if(!resp.ok){
+            const err=await resp.json().catch(()=>({}));
+            appendChatMsg('bot',`<span style="color:#ff6b6b">❌ Error: ${esc(err.error||resp.statusText)}</span>`);
+        }else{
+            const data=await resp.json();
+            const answer=data.answer||'No response.';
+            appendChatMsg('bot',formatBotText(answer));
+            chatHistory.push({role:'user',content:question});
+            chatHistory.push({role:'assistant',content:answer});
+            if(chatHistory.length>20)chatHistory=chatHistory.slice(-20);
+        }
+    }catch(e){removeTyping();appendChatMsg('bot',`<span style="color:#ff6b6b">❌ Network error: ${esc(e.message)}</span>`);}
+    chatBusy=false;document.getElementById('chatSend').disabled=false;
+    document.getElementById('chatInput').focus();
+}
+// ── Utilities ─────────────────────────────────────────────────────
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function getCookie(name){let v=null;document.cookie.split(';').forEach(c=>{c=c.trim();if(c.startsWith(name+'='))v=decodeURIComponent(c.slice(name.length+1));});return v;}
+function toast(msg){let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;bottom:20px;right:20px;background:#00e676;color:#000;font-family:Syne,sans-serif;font-size:0.78rem;font-weight:700;padding:8px 16px;border-radius:8px;z-index:9999;opacity:0;transition:opacity 0.2s;';document.body.appendChild(t);}t.textContent=msg;t.style.opacity='1';setTimeout(()=>t.style.opacity='0',1400);}
+// ── Drag ──────────────────────────────────────────────────────────
+const handle=document.getElementById('drag-handle'),filePane=document.getElementById('file-pane'),ws=document.getElementById('workspace');
+let dragging=false;
+handle.addEventListener('mousedown',e=>{dragging=true;handle.classList.add('active');e.preventDefault();});
+document.addEventListener('mousemove',e=>{if(!dragging)return;const rect=ws.getBoundingClientRect();let pct=((e.clientX-rect.left)/rect.width)*100;filePane.style.width=Math.max(20,Math.min(80,pct))+'%';});
+document.addEventListener('mouseup',()=>{if(dragging){dragging=false;handle.classList.remove('active');}});
+// ── Focus ─────────────────────────────────────────────────────────
+let focused=false;
+function toggleFocus(){focused=!focused;const rp=document.getElementById('right-pane'),dh=document.getElementById('drag-handle');if(focused){filePane.style.width='100%';rp.style.display='none';dh.style.display='none';}else{filePane.style.width='50%';rp.style.display='flex';dh.style.display='block';}}
+</script>
+</body>
+</html>

@@ -804,3 +804,425 @@ def penalty_api(request, record_id):
         'returned_date': str(record.returned_date) if record.returned_date else None,
         'status':       record.status,
     })
+
+
+
+
+
+
+
+
+import os
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from resources.models import Resource   # ← your resources app
+
+
+@login_required
+def self_study(request):
+    """Shows all uploaded resources for student to pick one to study."""
+    profile = getattr(request.user, 'profile', None)
+
+    resources_qs = Resource.objects.all().order_by('-uploaded_at')
+
+    resources = []
+    for res in resources_qs:
+        file_type = get_file_type(res.file.name)
+        resources.append({
+            'id':          res.id,
+            'title':       res.title,
+            'subject':     res.subject,
+            'description': res.description,
+            'file':        res.file,
+            'file_type':   file_type,
+            'icon':        get_file_icon(file_type),
+            'file_size':   get_file_size(res.file),
+            'uploaded_by': res.uploaded_by,
+            'created_at':  res.uploaded_at,   # ← your field is uploaded_at
+        })
+
+    return render(request, 'self_study.html', {
+        'profile':   profile,
+        'resources': resources,
+    })
+
+
+@login_required
+def self_study_workspace(request, resource_id):
+    """Opens split-screen workspace for a specific resource."""
+    profile  = getattr(request.user, 'profile', None)
+    resource = get_object_or_404(Resource, id=resource_id)
+
+    # Attach computed fields to the resource object
+    resource.file_type = get_file_type(resource.file.name)
+    resource.subject_display = dict(Resource.SUBJECT_CHOICES).get(resource.subject, resource.subject)
+
+    return render(request, 'self_study_workspace.html', {
+        'profile':  profile,
+        'resource': resource,
+    })
+
+
+# ── Helper functions ──────────────────────────────────────
+
+def get_file_type(filename):
+    if not filename:
+        return 'other'
+    ext = os.path.splitext(filename)[1].lower()
+    if ext == '.pdf':
+        return 'pdf'
+    elif ext in ['.doc', '.docx']:
+        return 'doc'
+    elif ext in ['.ppt', '.pptx']:
+        return 'ppt'
+    elif ext in ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg']:
+        return 'img'
+    else:
+        return 'other'
+
+
+def get_file_icon(file_type):
+    return {
+        'pdf':   '📄',
+        'doc':   '📝',
+        'ppt':   '📊',
+        'img':   '🖼',
+        'other': '📎',
+    }.get(file_type, '📎')
+
+
+def get_file_size(file_field):
+    try:
+        size = file_field.size
+        if size < 1024:
+            return f'{size} B'
+        elif size < 1024 * 1024:
+            return f'{size // 1024} KB'
+        else:
+            return f'{size / (1024*1024):.1f} MB'
+    except Exception:
+        return '—'
+
+
+
+
+
+
+
+
+import json
+import re
+import os
+import math
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
+from django.conf import settings          # ← WAS MISSING
+from groq import Groq                     # ← WAS MISSING
+from resources.models import Resource     # ← WAS MISSING (at top level)
+
+
+# ── Helper 1: file type detector ──────────────────────────────────
+def get_file_type(filename):
+    if not filename:
+        return 'other'
+    ext = os.path.splitext(filename)[1].lower()
+    if ext == '.pdf':                                return 'pdf'
+    elif ext in ['.doc', '.docx']:                   return 'doc'
+    elif ext in ['.ppt', '.pptx']:                   return 'ppt'
+    elif ext in ['.png','.jpg','.jpeg','.gif','.webp','.svg']: return 'img'
+    return 'other'
+
+
+# ── Helper 2: extract text from PDF ───────────────────────────────
+def extract_text_from_pdf(file_path):
+    try:
+        import PyPDF2
+        parts = []
+        with open(file_path, 'rb') as f:
+            reader = PyPDF2.PdfReader(f)
+            for page in reader.pages[:20]:
+                t = page.extract_text()
+                if t:
+                    parts.append(t)
+        text = '\n'.join(parts)
+        if len(text.strip()) > 100:
+            return text   # normal PDF — text extracted fine
+
+        # Fallback: scanned PDF — use OCR
+        print("[PDF] Text too short, trying OCR...")
+        from pdf2image import convert_from_path
+        import pytesseract
+        images = convert_from_path(file_path, first_page=1, last_page=10)
+        ocr_parts = [pytesseract.image_to_string(img) for img in images]
+        return '\n'.join(ocr_parts)
+
+    except Exception as e:
+        print(f"[PDF] ERROR: {e}")
+        return ""
+
+
+# ── Helper 3: split text into overlapping chunks ──────────────────
+def chunk_text(text, chunk_size=400, overlap=60):
+    words = text.split()
+    chunks = []
+    step = max(1, chunk_size - overlap)
+    for i in range(0, len(words), step):
+        chunk = ' '.join(words[i:i + chunk_size])
+        if chunk.strip():
+            chunks.append(chunk)
+    return chunks
+
+
+# ── Helper 4: simple TF-IDF search ───────────────────────────────
+def simple_tfidf_search(query, chunks, top_k=4):
+    if not chunks:
+        return []
+
+    def tokenize(text):
+        return re.findall(r'\b\w+\b', text.lower())
+
+    query_tokens = set(tokenize(query))
+    num_docs     = len(chunks)
+    scores       = []
+
+    for chunk in chunks:
+        chunk_tokens = tokenize(chunk)
+        if not chunk_tokens:
+            scores.append(0)
+            continue
+        counts = {}
+        for t in chunk_tokens:
+            counts[t] = counts.get(t, 0) + 1
+        score = 0
+        for token in query_tokens:
+            if token in counts:
+                tf  = counts[token] / len(chunk_tokens)
+                df  = sum(1 for c in chunks if token in tokenize(c))
+                idf = math.log((num_docs + 1) / (df + 1)) + 1
+                score += tf * idf
+        scores.append(score)
+
+    ranked = sorted(range(len(chunks)), key=lambda i: scores[i], reverse=True)
+    top    = [chunks[i] for i in ranked[:top_k] if scores[i] > 0]
+    return top if top else chunks[:top_k]
+
+
+# ── Main RAG view ─────────────────────────────────────────────────
+@login_required
+@csrf_exempt
+def rag_chatbot_api(request, resource_id):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST only"}, status=405)
+
+    # Parse body
+    try:
+        body     = json.loads(request.body)
+        question = body.get("question", "").strip()
+        history  = body.get("history", [])
+    except Exception:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    if not question:
+        return JsonResponse({"error": "No question"}, status=400)
+
+    # Get resource
+    try:
+        resource = Resource.objects.get(pk=resource_id)
+    except Resource.DoesNotExist:
+        return JsonResponse({"error": "Resource not found"}, status=404)
+
+    # Extract context from file
+    context_text = ""
+    file_type    = get_file_type(resource.file.name)
+
+    if resource.file and file_type == "pdf":
+        raw_text = extract_text_from_pdf(resource.file.path)
+        if raw_text and len(raw_text.strip()) > 100:
+            chunks       = chunk_text(raw_text, chunk_size=400, overlap=60)
+            relevant     = simple_tfidf_search(question, chunks, top_k=4)
+            context_text = "\n\n---\n\n".join(relevant)
+
+    # Build system prompt
+    if context_text:
+        system_prompt = (
+            "You are a helpful AI study assistant. "
+            "Answer the student's question using ONLY the document context below. "
+            "If the answer is not in the context, say so clearly. "
+            "Be concise, clear, and educational. Use bullet points or code blocks where helpful.\n\n"
+            f"=== DOCUMENT CONTEXT ===\n{context_text}\n=== END CONTEXT ==="
+        )
+    else:
+        system_prompt = (
+            f"You are a helpful AI study assistant for subject: {resource.subject}. "
+            f"The student is studying '{resource.title}'. "
+            "The document could not be parsed (not a PDF or text extraction failed). "
+            "Answer using your general knowledge about this subject."
+        )
+
+    # Build messages
+    messages_list = [{"role": "system", "content": system_prompt}]
+    for turn in history[-6:]:
+        role    = turn.get("role")
+        content = turn.get("content", "")
+        if role in ("user", "assistant") and content:
+            messages_list.append({"role": role, "content": content})
+    messages_list.append({"role": "user", "content": question})
+
+    # Call Groq
+    try:
+        api_key = settings.GROQ_API_KEY
+        if not api_key:
+            return JsonResponse({"error": "GROQ_API_KEY not set in .env / settings.py"}, status=500)
+
+        client   = Groq(api_key=api_key)
+        response = client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=messages_list,
+            max_tokens=1024,
+            temperature=0.7,
+        )
+        answer = response.choices[0].message.content
+        return JsonResponse({"answer": answer})
+
+    except Exception as e:
+        return JsonResponse({"error": f"LLM error: {str(e)}"}, status=500)
+
+
+
+
+#complaint views
+
+def is_teacher(user):
+    try:
+        return user.profile.role == 'faculty'
+    except Exception:
+        return False
+
+
+@login_required
+def complaint_portal(request):
+    """Routes to student or faculty view."""
+    profile = getattr(request.user, 'profile', None)
+    if is_teacher(request.user):
+        return redirect('complaint_faculty')
+    return redirect('complaint_student')
+
+
+@login_required
+def complaint_student(request):
+    """Student: view own complaints + submit new."""
+    from .models import Complaint   # adjust app name if needed
+
+    profile   = getattr(request.user, 'profile', None)
+    teachers  = User.objects.filter(profile__role='faculty').order_by('first_name', 'last_name')
+    complaints = Complaint.objects.filter(student=request.user)
+
+    if request.method == 'POST':
+        teacher_id     = request.POST.get('teacher')
+        heading        = request.POST.get('heading', '').strip()
+        description    = request.POST.get('description', '').strip()
+        complaint_type = request.POST.get('complaint_type')
+        urgency        = request.POST.get('urgency', 'normal')
+
+        if teacher_id and heading and description and complaint_type:
+            teacher = get_object_or_404(User, id=teacher_id)
+            Complaint.objects.create(
+                student=request.user,
+                teacher=teacher,
+                heading=heading,
+                description=description,
+                complaint_type=complaint_type,
+                urgency=urgency,
+            )
+        return redirect('complaint_student')
+
+    return render(request, 'complaint_student.html', {
+        'profile':    profile,
+        'teachers':   teachers,
+        'complaints': complaints,
+        'type_choices': Complaint.COMPLAINT_TYPES,
+    })
+
+
+@login_required
+def complaint_edit(request, complaint_id):
+    """Student edits their own complaint (only if pending)."""
+    from .models import Complaint
+
+    complaint = get_object_or_404(Complaint, id=complaint_id, student=request.user)
+
+    if complaint.status != 'pending':
+        return redirect('complaint_student')  # can't edit after viewed/solved
+
+    if request.method == 'POST':
+        complaint.heading        = request.POST.get('heading', complaint.heading).strip()
+        complaint.description    = request.POST.get('description', complaint.description).strip()
+        complaint.complaint_type = request.POST.get('complaint_type', complaint.complaint_type)
+        complaint.urgency        = request.POST.get('urgency', complaint.urgency)
+        teacher_id = request.POST.get('teacher')
+        if teacher_id:
+            complaint.teacher = get_object_or_404(User, id=teacher_id)
+        complaint.save()
+        return redirect('complaint_student')
+
+    profile  = getattr(request.user, 'profile', None)
+    teachers = User.objects.filter(profile__role='faculty').order_by('first_name', 'last_name')
+
+    return render(request, 'complaint_edit.html', {
+        'profile':    profile,
+        'complaint':  complaint,
+        'teachers':   teachers,
+        'type_choices': Complaint.COMPLAINT_TYPES,
+    })
+
+
+@login_required
+def complaint_delete(request, complaint_id):
+    """Student deletes their own complaint."""
+    from .models import Complaint
+    complaint = get_object_or_404(Complaint, id=complaint_id, student=request.user)
+    if request.method == 'POST':
+        complaint.delete()
+    return redirect('complaint_student')
+
+
+@login_required
+def complaint_faculty(request):
+    from .models import Complaint
+
+    if not is_teacher(request.user):
+        return redirect('complaint_student')
+
+    profile    = getattr(request.user, 'profile', None)
+    complaints = Complaint.objects.filter(teacher=request.user)
+
+    return render(request, 'complaint_faculty.html', {
+        'profile':       profile,
+        'complaints':    complaints,
+        'pending_count': complaints.filter(status='pending').count(),
+        'viewed_count':  complaints.filter(status='viewed').count(),
+        'solved_count':  complaints.filter(status='solved').count(),
+        'urgent_count':  complaints.filter(urgency='urgent', status='pending').count(),
+    })
+
+
+@login_required
+@require_POST
+def complaint_update_status(request, complaint_id):
+    """Faculty marks complaint as viewed or solved via AJAX."""
+    from .models import Complaint
+
+    if not is_teacher(request.user):
+        return JsonResponse({'error': 'Forbidden'}, status=403)
+
+    complaint = get_object_or_404(Complaint, id=complaint_id, teacher=request.user)
+    data   = json.loads(request.body)
+    status = data.get('status')
+
+    if status in ('viewed', 'solved'):
+        complaint.status = status
+        complaint.save()
+        return JsonResponse({'ok': True, 'status': status})
+
+    return JsonResponse({'error': 'Invalid status'}, status=400)

@@ -283,3 +283,144 @@ class LibraryRecordAdmin(admin.ModelAdmin):
             returned_date=None,
         )
         self.message_user(request, f'{updated} book(s) unmarked.')
+
+
+
+#complaint model
+
+
+from django.contrib import admin
+from .models import Complaint
+
+
+@admin.register(Complaint)
+class ComplaintAdmin(admin.ModelAdmin):
+
+    # ── List view columns ──────────────────────────────────
+    list_display = (
+        'heading',
+        'student_name',
+        'teacher_name',
+        'complaint_type_badge',
+        'urgency_badge',
+        'status_badge',
+        'created_at',
+    )
+
+    # ── Filters sidebar ────────────────────────────────────
+    list_filter = (
+        'status',
+        'urgency',
+        'complaint_type',
+        'created_at',
+    )
+
+    # ── Search ─────────────────────────────────────────────
+    search_fields = (
+        'heading',
+        'description',
+        'student__username',
+        'student__first_name',
+        'student__last_name',
+        'teacher__username',
+        'teacher__first_name',
+        'teacher__last_name',
+    )
+
+    # ── Default ordering ───────────────────────────────────
+    ordering = ('-created_at',)
+
+    # ── Read-only fields in detail view ───────────────────
+    readonly_fields = ('created_at', 'updated_at')
+
+    # ── Detail view layout ─────────────────────────────────
+    fieldsets = (
+        ('Complaint Info', {
+            'fields': ('heading', 'description', 'complaint_type', 'urgency')
+        }),
+        ('People', {
+            'fields': ('student', 'teacher')
+        }),
+        ('Status', {
+            'fields': ('status',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',),
+        }),
+    )
+
+    # ── Bulk actions ───────────────────────────────────────
+    actions = ['mark_viewed', 'mark_solved', 'mark_pending']
+
+    @admin.action(description='👁 Mark selected as Viewed')
+    def mark_viewed(self, request, queryset):
+        updated = queryset.update(status='viewed')
+        self.message_user(request, f'{updated} complaint(s) marked as Viewed.')
+
+    @admin.action(description='✅ Mark selected as Solved')
+    def mark_solved(self, request, queryset):
+        updated = queryset.update(status='solved')
+        self.message_user(request, f'{updated} complaint(s) marked as Solved.')
+
+    @admin.action(description='⏳ Reset selected to Pending')
+    def mark_pending(self, request, queryset):
+        updated = queryset.update(status='pending')
+        self.message_user(request, f'{updated} complaint(s) reset to Pending.')
+
+    # ── Custom display methods ─────────────────────────────
+    @admin.display(description='Student')
+    def student_name(self, obj):
+        return obj.student.get_full_name() or obj.student.username
+
+    @admin.display(description='Teacher')
+    def teacher_name(self, obj):
+        return obj.teacher.get_full_name() or obj.teacher.username
+
+    @admin.display(description='Type')
+    def complaint_type_badge(self, obj):
+        from django.utils.html import format_html
+        colors = {
+            'academic':   '#64b5f6',
+            'attendance': '#ffd54f',
+            'behavior':   '#ff8a65',
+            'facility':   '#a5d6a7',
+            'fees':       '#ce93d8',
+            'harassment': '#ff6b6b',
+            'other':      '#90a4ae',
+        }
+        color = colors.get(obj.complaint_type, '#888')
+        return format_html(
+            '<span style="color:{};font-weight:600;font-size:0.78rem;">{}</span>',
+            color,
+            obj.get_complaint_type_display()
+        )
+
+    @admin.display(description='Urgency')
+    def urgency_badge(self, obj):
+        from django.utils.html import format_html
+        if obj.urgency == 'urgent':
+            return format_html(
+                '<span style="background:rgba(255,68,68,0.15);color:#ff4444;'
+                'padding:2px 8px;border-radius:20px;font-size:0.75rem;font-weight:700;">'
+                '🔴 URGENT</span>'
+            )
+        return format_html(
+            '<span style="color:rgba(255,255,255,0.3);font-size:0.78rem;">Normal</span>'
+        )
+
+    @admin.display(description='Status')
+    def status_badge(self, obj):
+        from django.utils.html import format_html
+        styles = {
+            'pending': ('⏳', '#888',    'rgba(255,255,255,0.06)'),
+            'viewed':  ('👁', '#ffc107', 'rgba(255,193,7,0.1)'),
+            'solved':  ('✅', '#00e676', 'rgba(0,230,118,0.1)'),
+        }
+        icon, color, bg = styles.get(obj.status, ('', '#888', 'transparent'))
+        return format_html(
+            '<span style="background:{};color:{};padding:3px 10px;'
+            'border-radius:20px;font-size:0.75rem;font-weight:700;">'
+            '{} {}</span>',
+            bg, color, icon, obj.get_status_display()
+        )

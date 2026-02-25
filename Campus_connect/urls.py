@@ -40,4 +40,14 @@ urlpatterns = [
     path('study/chatbot/',                      views.chatbot,            name='chatbot'),
     path('study/chatbot/api/',                  views.chatbot_api,        name='chatbot_api'),
     path('resources/',                          include('resources.urls')),
+    path('study/self-study/', views.self_study, name='self_study'),
+path('study/self-study/<int:resource_id>/', views.self_study_workspace, name='self_study_workspace'),
+path('study/rag-chat/<int:resource_id>/', views.rag_chatbot_api, name='rag_chatbot_api'),
+# ── Complaint Portal ──────────────────────────────────────
+path('study/complaints/',                           views.complaint_portal,        name='complaint_portal'),
+path('study/complaints/student/',                   views.complaint_student,       name='complaint_student'),
+path('study/complaints/faculty/',                   views.complaint_faculty,       name='complaint_faculty'),
+path('study/complaints/edit/<int:complaint_id>/',   views.complaint_edit,          name='complaint_edit'),
+path('study/complaints/delete/<int:complaint_id>/', views.complaint_delete,        name='complaint_delete'),
+path('study/complaints/status/<int:complaint_id>/', views.complaint_update_status, name='complaint_update_status'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
