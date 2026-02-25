@@ -3,9 +3,14 @@ from django.contrib.auth import authenticate, login as auth_login, logout as aut
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db.models import Q
-from .models import UserProfile, Announcement, BRANCH_CHOICES, YEAR_CHOICES
-
-
+from .models import UserProfile, Announcement, BRANCH_CHOICES, YEAR_CHOICES,Goal, QuizQuestion, GoalSubmission, QuizAnswer
+from django.utils import timezone
+import json
+from groq import Groq
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+from django.conf import settings
 def home(request):
     return render(request, 'home.html')
 
@@ -318,3 +323,308 @@ def compiler(request):
         'profile': profile,
     }
     return render(request, 'compiler.html', context)
+
+
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# GOALS HUB  (branch point: teacher vs student)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def goals(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    try:
+        profile = request.user.profile
+    except UserProfile.DoesNotExist:
+        profile = None
+
+    is_faculty = profile and profile.role == 'faculty'
+
+    if is_faculty:
+        # Teacher sees all goals they created
+        goals_list = Goal.objects.filter(assigned_by=request.user)
+        return render(request, 'goals/teacher_goals.html', {
+            'goals': goals_list,
+            'user': request.user,
+            'profile': profile,
+        })
+    else:
+        # Student sees goals assigned to them
+        today = timezone.now().date()
+        goals_list = Goal.objects.filter(assigned_to=request.user)
+
+        # Auto-mark overdue
+        goals_list.filter(due_date__lt=today, status='active').update(status='overdue')
+
+        # Annotate with submission status
+        annotated = []
+        for g in goals_list:
+            sub = GoalSubmission.objects.filter(goal=g, student=request.user).first()
+            annotated.append({'goal': g, 'submission': sub})
+
+        return render(request, 'goals/student_goals.html', {
+            'annotated': annotated,
+            'user': request.user,
+            'profile': profile,
+        })
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TEACHER: CREATE GOAL
+# ─────────────────────────────────────────────────────────────────────────────
+
+def create_goal(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    try:
+        profile = request.user.profile
+    except UserProfile.DoesNotExist:
+        return redirect('goals')
+
+    if profile.role != 'faculty':
+        messages.error(request, 'Only faculty can create goals.')
+        return redirect('goals')
+
+    students = User.objects.filter(profile__role='student').select_related('profile')
+
+    if request.method == 'POST':
+        title       = request.POST.get('title', '').strip()
+        description = request.POST.get('description', '').strip()
+        goal_type   = request.POST.get('goal_type', 'task')
+        start_date  = request.POST.get('start_date')
+        due_date    = request.POST.get('due_date')
+        res_link    = request.POST.get('resource_link', '').strip() or None
+        res_file    = request.FILES.get('resource_file')
+        student_ids = request.POST.getlist('students')  # list of user IDs
+
+        # Validation
+        if not title or not start_date or not due_date:
+            messages.error(request, 'Title, start date and due date are required.')
+            return render(request, 'goals/create_goal.html', {
+                'students': students,
+                'user': request.user,
+                'profile': profile,
+            })
+
+        # Create Goal
+        goal = Goal.objects.create(
+            title=title,
+            description=description,
+            goal_type=goal_type,
+            assigned_by=request.user,
+            start_date=start_date,
+            due_date=due_date,
+            resource_link=res_link,
+            resource_file=res_file if res_file else None,
+        )
+
+        # Assign students
+        if student_ids:
+            # Filter to valid IDs only
+            valid_students = User.objects.filter(id__in=student_ids, profile__role='student')
+            goal.assigned_to.set(valid_students)
+        else:
+            # Assign to ALL students if none selected
+            goal.assigned_to.set(students)
+
+        # If quiz: handle questions
+        if goal_type == 'quiz':
+            i = 1
+            while True:
+                q_text = request.POST.get(f'q_text_{i}', '').strip()
+                if not q_text:
+                    break
+                qtype   = request.POST.get(f'q_type_{i}', 'mcq')
+                opt_a   = request.POST.get(f'q_a_{i}', '').strip()
+                opt_b   = request.POST.get(f'q_b_{i}', '').strip()
+                opt_c   = request.POST.get(f'q_c_{i}', '').strip()
+                opt_d   = request.POST.get(f'q_d_{i}', '').strip()
+                correct = request.POST.get(f'q_correct_{i}', '').strip()
+                QuizQuestion.objects.create(
+                    goal=goal,
+                    qtype=qtype,
+                    question=q_text,
+                    option_a=opt_a,
+                    option_b=opt_b,
+                    option_c=opt_c,
+                    option_d=opt_d,
+                    correct=correct.upper(),
+                    order=i,
+                )
+                i += 1
+
+        messages.success(request, f'Goal "{title}" created and assigned to {goal.assigned_to.count()} student(s)!')
+        return redirect('goals')
+
+    return render(request, 'goals/create_goal.html', {
+        'students': students,
+        'user': request.user,
+        'profile': profile,
+    })
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TEACHER: VIEW SUBMISSIONS FOR A GOAL
+# ─────────────────────────────────────────────────────────────────────────────
+
+def goal_submissions(request, goal_id):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    # Teacher must own this goal
+    goal = get_object_or_404(Goal, id=goal_id, assigned_by=request.user)
+
+    # Get ALL submissions for this goal with related data
+    submissions = GoalSubmission.objects.filter(
+        goal=goal
+    ).select_related('student', 'student__profile').prefetch_related('answers')
+
+    assigned_students = goal.assigned_to.all().select_related('profile')
+    assigned_count = assigned_students.count()
+
+    # Build a "not submitted yet" list too
+    submitted_student_ids = submissions.values_list('student_id', flat=True)
+    not_submitted = assigned_students.exclude(id__in=submitted_student_ids)
+
+    return render(request, 'goals/goal_submissions.html', {
+        'goal': goal,
+        'submissions': submissions,
+        'not_submitted': not_submitted,
+        'assigned_count': assigned_count,
+        'submitted_count': submissions.count(),
+        'user': request.user,
+    })
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TEACHER: GIVE FEEDBACK ON SUBMISSION
+# ─────────────────────────────────────────────────────────────────────────────
+
+def review_submission(request, sub_id):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    sub = get_object_or_404(GoalSubmission, id=sub_id, goal__assigned_by=request.user)
+
+    if request.method == 'POST':
+        sub.feedback = request.POST.get('feedback', '').strip()
+        sub.status   = request.POST.get('status', 'reviewed')
+        sub.save()
+        messages.success(request, 'Feedback saved!')
+        return redirect('goal_submissions', goal_id=sub.goal.id)
+
+    return render(request, 'goals/review_submission.html', {
+        'sub': sub,
+        'user': request.user,
+    })
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# STUDENT: VIEW GOAL DETAIL + SUBMIT
+# ─────────────────────────────────────────────────────────────────────────────
+
+def goal_detail(request, goal_id):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    goal = get_object_or_404(Goal, id=goal_id, assigned_to=request.user)
+    existing_sub = GoalSubmission.objects.filter(goal=goal, student=request.user).first()
+
+    if request.method == 'POST' and not existing_sub:
+        note = request.POST.get('note', '').strip()
+        file = request.FILES.get('submission_file')
+
+        sub = GoalSubmission.objects.create(
+            goal=goal,
+            student=request.user,
+            note=note,
+            file=file if file else None,
+        )
+
+        # If quiz: process answers
+        if goal.goal_type == 'quiz':
+            questions = goal.questions.all()
+            score = 0
+            for q in questions:
+                ans = request.POST.get(f'answer_{q.id}', '').strip()
+                is_correct = None
+                if q.qtype == 'mcq':
+                    is_correct = ans.upper() == q.correct.upper()
+                    if is_correct:
+                        score += 1
+                QuizAnswer.objects.create(
+                    submission=sub, question=q,
+                    answer=ans, is_correct=is_correct
+                )
+            sub.quiz_score = score
+            sub.quiz_total = questions.count()
+            sub.save()
+
+        messages.success(request, 'Submitted successfully!')
+        return redirect('goal_detail', goal_id=goal_id)
+
+    return render(request, 'goals/goal_detail.html', {
+        'goal': goal,
+        'submission': existing_sub,
+        'questions': goal.questions.all() if goal.goal_type == 'quiz' else [],
+        'user': request.user,
+    })
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TEACHER: DELETE GOAL
+# ─────────────────────────────────────────────────────────────────────────────
+
+def delete_goal(request, goal_id):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    if request.method == 'POST':
+        goal = get_object_or_404(Goal, id=goal_id, assigned_by=request.user)
+        goal.delete()
+        messages.success(request, 'Goal deleted.')
+    return redirect('goals')
+
+
+
+def chatbot_api(request):
+    try:
+        body = json.loads(request.body)
+        user_message = body.get("message", "").strip()
+        history = body.get("history", [])
+
+        if not user_message:
+            return JsonResponse({"reply": "Please send a message."}, status=400)
+
+        client = Groq(api_key=settings.GROQ_API_KEY)
+
+        messages = [
+            {
+                "role": "system",
+                "content": """You are Campus AI Assistant, a helpful academic bot for Campus Connect — a student platform.
+You help students with academic concepts, exam prep, assignments, and study strategies.
+Be concise, friendly, and encouraging. Use **bold** for key terms and numbered lists for steps."""
+            }
+        ]
+
+        # Add chat history (last 10 messages for context)
+        for item in history[-10:]:
+            role = item.get("role")
+            content = item.get("content", "")
+            if role in ("user", "assistant") and content:
+                messages.append({"role": role, "content": content})
+
+        response = client.chat.completions.create(
+            model="llama-3.1-8b-instant",  # free, fast model
+            messages=messages,
+            max_tokens=1024,
+        )
+
+        reply = response.choices[0].message.content
+        return JsonResponse({"reply": reply})
+
+    except Exception as e:
+        return JsonResponse({"reply": f"⚠️ Error: {str(e)}"}, status=500)
+@login_required
+def chatbot(request):
+    profile = getattr(request.user, 'profile', None)
+    return render(request, 'chatbot.html', {'profile': profile})

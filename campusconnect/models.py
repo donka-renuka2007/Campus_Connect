@@ -131,3 +131,90 @@ class Announcement(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Goal(models.Model):
+    GOAL_TYPE = [
+        ('task',  'Task'),
+        ('quiz',  'Quiz'),
+    ]
+    STATUS = [
+        ('active',    'Active'),
+        ('completed', 'Completed'),
+        ('overdue',   'Overdue'),
+    ]
+
+    title           = models.CharField(max_length=200)
+    description     = models.TextField(blank=True)
+    goal_type       = models.CharField(max_length=10, choices=GOAL_TYPE, default='task')
+    assigned_by     = models.ForeignKey(User, on_delete=models.CASCADE, related_name='goals_created')
+    assigned_to     = models.ManyToManyField(User, related_name='goals_assigned', blank=True)
+    start_date      = models.DateField()
+    due_date        = models.DateField()
+    resource_link   = models.URLField(blank=True, null=True)
+    resource_file   = models.FileField(upload_to='goal_resources/', blank=True, null=True)
+    status          = models.CharField(max_length=20, choices=STATUS, default='active')
+    created_at      = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title
+
+
+class QuizQuestion(models.Model):
+    QTYPE = [
+        ('mcq',   'Multiple Choice'),
+        ('short', 'Short Answer'),
+    ]
+    goal     = models.ForeignKey(Goal, on_delete=models.CASCADE, related_name='questions')
+    qtype    = models.CharField(max_length=10, choices=QTYPE, default='mcq')
+    question = models.TextField()
+    option_a = models.CharField(max_length=300, blank=True)
+    option_b = models.CharField(max_length=300, blank=True)
+    option_c = models.CharField(max_length=300, blank=True)
+    option_d = models.CharField(max_length=300, blank=True)
+    correct  = models.CharField(max_length=1, blank=True, help_text="A/B/C/D for MCQ")
+    order    = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f"Q{self.order}: {self.question[:50]}"
+
+
+class GoalSubmission(models.Model):
+    STATUS = [
+        ('submitted', 'Submitted'),
+        ('reviewed',  'Reviewed'),
+        ('approved',  'Approved'),
+        ('rejected',  'Rejected'),
+    ]
+    goal        = models.ForeignKey(Goal, on_delete=models.CASCADE, related_name='submissions')
+    student     = models.ForeignKey(User, on_delete=models.CASCADE, related_name='goal_submissions')
+    file        = models.FileField(upload_to='goal_submissions/', blank=True, null=True)
+    note        = models.TextField(blank=True)
+    quiz_score  = models.FloatField(null=True, blank=True)
+    quiz_total  = models.IntegerField(null=True, blank=True)
+    status      = models.CharField(max_length=20, choices=STATUS, default='submitted')
+    feedback    = models.TextField(blank=True)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('goal', 'student')
+        ordering = ['-submitted_at']
+
+    def __str__(self):
+        return f"{self.student.username} → {self.goal.title}"
+
+
+class QuizAnswer(models.Model):
+    submission = models.ForeignKey(GoalSubmission, on_delete=models.CASCADE, related_name='answers')
+    question   = models.ForeignKey(QuizQuestion, on_delete=models.CASCADE)
+    answer     = models.TextField()
+    is_correct = models.BooleanField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.submission.student.username} - Q{self.question.order}"

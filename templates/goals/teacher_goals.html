@@ -1,0 +1,139 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>My Goals — Campus Connect</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{--green:#00e676;--pink:#ff4d9e;--dark:#0a0a0a;--border:#1e1e1e}
+    body{font-family:'DM Sans',sans-serif;background:var(--dark);color:#fff;min-height:100vh}
+    nav{display:flex;justify-content:space-between;align-items:center;padding:14px 40px;background:#0d0d0d;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;color:var(--green);text-decoration:none}
+    .nav-right{display:flex;gap:10px}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;text-decoration:none;border:none;transition:all 0.2s}
+    .btn-green{background:var(--green);color:#000}
+    .btn-green:hover{background:#00ff88;transform:translateY(-1px)}
+    .btn-outline{background:transparent;border:1px solid #2a2a2a;color:rgba(255,255,255,0.5)}
+    .btn-outline:hover{border-color:#444;color:#fff}
+    .btn-danger{background:transparent;border:1px solid rgba(255,77,77,0.3);color:#ff6b6b}
+    .btn-danger:hover{background:rgba(255,77,77,0.08)}
+    .page-header{padding:36px 40px 24px;border-bottom:1px solid var(--border)}
+    .page-header h1{font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800}
+    .page-header h1 span{color:var(--green)}
+    .page-header p{color:rgba(255,255,255,0.35);margin-top:6px;font-size:0.88rem}
+    .content{max-width:1000px;margin:0 auto;padding:32px 40px}
+    .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px}
+    .stat-card{background:#111;border:1px solid var(--border);border-radius:14px;padding:20px 24px}
+    .stat-card .num{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800}
+    .stat-card .label{font-size:0.78rem;color:rgba(255,255,255,0.35);margin-top:4px;text-transform:uppercase;letter-spacing:0.06em}
+    .goals-list{display:flex;flex-direction:column;gap:14px}
+    .goal-card{background:#111;border:1px solid var(--border);border-radius:16px;padding:22px 24px;display:flex;align-items:flex-start;gap:20px;transition:border-color 0.2s}
+    .goal-card:hover{border-color:#2a2a2a}
+    .goal-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+    .icon-task{background:rgba(0,230,118,0.1)}
+    .icon-quiz{background:rgba(255,77,158,0.1)}
+    .goal-body{flex:1;min-width:0}
+    .goal-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:4px}
+    .goal-meta{font-size:0.78rem;color:rgba(255,255,255,0.35);display:flex;gap:14px;flex-wrap:wrap;margin-top:6px}
+    .goal-meta span{display:flex;align-items:center;gap:4px}
+    .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:50px;font-size:0.68rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase}
+    .badge-task{background:rgba(0,230,118,0.1);color:var(--green);border:1px solid rgba(0,230,118,0.2)}
+    .badge-quiz{background:rgba(255,77,158,0.1);color:var(--pink);border:1px solid rgba(255,77,158,0.2)}
+    .badge-active{background:rgba(100,181,246,0.1);color:#64b5f6;border:1px solid rgba(100,181,246,0.2)}
+    .badge-overdue{background:rgba(255,107,107,0.1);color:#ff6b6b;border:1px solid rgba(255,107,107,0.2)}
+    .badge-completed{background:rgba(165,214,167,0.1);color:#a5d6a7;border:1px solid rgba(165,214,167,0.2)}
+    .goal-actions{display:flex;gap:8px;flex-shrink:0;align-items:center}
+    .empty{text-align:center;padding:60px 20px;color:rgba(255,255,255,0.2)}
+    .empty .e-icon{font-size:3rem;margin-bottom:12px}
+    .empty p{font-size:0.88rem}
+    .progress-pill{background:#1a1a1a;border-radius:50px;height:6px;width:100px;overflow:hidden;margin-top:8px}
+    .progress-fill{height:100%;border-radius:50px;background:var(--green)}
+    @media(max-width:700px){.content{padding:20px 16px}.stats-row{grid-template-columns:1fr 1fr}.goal-actions{flex-direction:column}.goal-card{flex-wrap:wrap}}
+  </style>
+</head>
+<body>
+<nav>
+  <a href="{% url 'home' %}" class="nav-logo">Campus Connect</a>
+  <div class="nav-right">
+    <a href="{% url 'study' %}" class="btn btn-outline">← Study Hub</a>
+    <a href="{% url 'create_goal' %}" class="btn btn-green">＋ New Goal</a>
+  </div>
+</nav>
+
+<div class="page-header">
+  <h1>🎯 <span>My Goals</span> — Teacher View</h1>
+  <p>Assign and manage goals, tasks, and quizzes for your students.</p>
+</div>
+
+<div class="content">
+  {% if messages %}{% for m in messages %}
+  <div style="background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.2);color:var(--green);padding:10px 16px;border-radius:9px;margin-bottom:16px;font-size:0.85rem">{{ m }}</div>
+  {% endfor %}{% endif %}
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="num" style="color:var(--green)">{{ goals.count }}</div>
+      <div class="label">Total Goals</div>
+    </div>
+    <div class="stat-card">
+      <div class="num" style="color:var(--pink)">{{ goals|length }}</div>
+      <div class="label">Active / Assigned</div>
+    </div>
+    <div class="stat-card">
+      <div class="num" style="color:#64b5f6">{{ goals.filter.count|default:"—" }}</div>
+      <div class="label">Quiz Goals</div>
+    </div>
+  </div>
+
+  <!-- Goals list -->
+  <div class="goals-list">
+    {% for goal in goals %}
+    <div class="goal-card">
+      <div class="goal-icon {% if goal.goal_type == 'quiz' %}icon-quiz{% else %}icon-task{% endif %}">
+        {% if goal.goal_type == 'quiz' %}🧩{% else %}📋{% endif %}
+      </div>
+      <div class="goal-body">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span class="goal-title">{{ goal.title }}</span>
+          <span class="badge {% if goal.goal_type == 'quiz' %}badge-quiz{% else %}badge-task{% endif %}">{{ goal.goal_type }}</span>
+          <span class="badge {% if goal.status == 'active' %}badge-active{% elif goal.status == 'overdue' %}badge-overdue{% else %}badge-completed{% endif %}">{{ goal.status }}</span>
+        </div>
+        {% if goal.description %}<p style="font-size:0.82rem;color:rgba(255,255,255,0.35);margin-top:4px">{{ goal.description|truncatechars:100 }}</p>{% endif %}
+        <div class="goal-meta">
+          <span>📅 {{ goal.start_date }} → {{ goal.due_date }}</span>
+          <span>👥 {{ goal.assigned_to.count }} students</span>
+          <span>📨 {{ goal.submissions.count }} submitted</span>
+          {% if goal.resource_link %}<span>🔗 Resource attached</span>{% endif %}
+        </div>
+        <!-- Submission progress -->
+        {% if goal.assigned_to.count > 0 %}
+        {% with pct=goal.submissions.count %}
+        <div style="display:flex;align-items:center;gap:10px;margin-top:10px">
+          <div class="progress-pill"><div class="progress-fill" style="width:{% widthratio goal.submissions.count goal.assigned_to.count 100 %}%"></div></div>
+          <span style="font-size:0.72rem;color:rgba(255,255,255,0.3)">{{ goal.submissions.count }}/{{ goal.assigned_to.count }} submitted</span>
+        </div>
+        {% endwith %}
+        {% endif %}
+      </div>
+      <div class="goal-actions">
+        <a href="{% url 'goal_submissions' goal.id %}" class="btn btn-outline" style="font-size:0.78rem;padding:6px 14px">📋 Submissions</a>
+        <form method="POST" action="{% url 'delete_goal' goal.id %}" style="display:inline" onsubmit="return confirm('Delete this goal?')">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger" style="font-size:0.78rem;padding:6px 12px">🗑</button>
+        </form>
+      </div>
+    </div>
+    {% empty %}
+    <div class="empty">
+      <div class="e-icon">🎯</div>
+      <p>No goals yet. Click <strong>+ New Goal</strong> to assign one to your students.</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+</body>
+</html>

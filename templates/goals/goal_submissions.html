@@ -1,0 +1,175 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Submissions — {{ goal.title }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{--green:#00e676;--pink:#ff4d9e;--dark:#0a0a0a;--border:#1e1e1e}
+    body{font-family:'DM Sans',sans-serif;background:var(--dark);color:#fff;min-height:100vh}
+    nav{display:flex;justify-content:space-between;align-items:center;padding:14px 40px;background:#0d0d0d;border-bottom:1px solid var(--border)}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;color:var(--green);text-decoration:none}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;text-decoration:none;border:1px solid #2a2a2a;background:transparent;color:rgba(255,255,255,0.5);transition:all 0.2s}
+    .btn:hover{border-color:#444;color:#fff}
+    .main{max-width:960px;margin:0 auto;padding:36px 40px}
+    /* Goal info card */
+    .goal-info{background:#111;border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:28px}
+    .goal-info h2{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;margin-bottom:10px}
+    .meta-row{display:flex;gap:16px;flex-wrap:wrap;font-size:0.82rem;color:rgba(255,255,255,0.35)}
+    .progress-bar{background:#1a1a1a;border-radius:50px;height:8px;margin-top:16px;overflow:hidden}
+    .progress-fill{height:100%;border-radius:50px;background:var(--green)}
+    .progress-label{font-size:0.75rem;color:rgba(255,255,255,0.3);margin-top:6px}
+    /* Tabs */
+    .tabs{display:flex;gap:8px;margin-bottom:20px}
+    .tab{padding:8px 20px;border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;border:1px solid #2a2a2a;background:transparent;color:rgba(255,255,255,0.4);transition:all 0.2s}
+    .tab.active{border-color:var(--green);color:var(--green);background:rgba(0,230,118,0.06)}
+    /* Submission cards */
+    .sub-list{display:flex;flex-direction:column;gap:12px}
+    .sub-card{background:#111;border:1px solid var(--border);border-radius:14px;padding:18px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;transition:border-color 0.2s}
+    .sub-card:hover{border-color:#2a2a2a}
+    .avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--pink));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:0.85rem;font-weight:700;color:#000;flex-shrink:0}
+    .student-info{flex:1;min-width:140px}
+    .student-name{font-weight:600;font-size:0.92rem}
+    .student-meta{font-size:0.75rem;color:rgba(255,255,255,0.3);margin-top:2px}
+    .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:50px;font-size:0.68rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase}
+    .badge-submitted{background:rgba(100,181,246,0.1);color:#64b5f6;border:1px solid rgba(100,181,246,0.2)}
+    .badge-reviewed{background:rgba(255,193,7,0.1);color:#ffc107;border:1px solid rgba(255,193,7,0.2)}
+    .badge-approved{background:rgba(0,230,118,0.1);color:var(--green);border:1px solid rgba(0,230,118,0.2)}
+    .badge-rejected{background:rgba(255,107,107,0.1);color:#ff6b6b;border:1px solid rgba(255,107,107,0.2)}
+    .badge-pending{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.3);border:1px solid #2a2a2a}
+    .score-chip{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:4px 12px;font-size:0.8rem;font-family:'Syne',sans-serif;font-weight:700;color:var(--green)}
+    .sub-date{font-size:0.75rem;color:rgba(255,255,255,0.25)}
+    .sub-actions{display:flex;gap:8px;align-items:center;margin-left:auto}
+    .note-preview{font-size:0.78rem;color:rgba(255,255,255,0.35);background:#161616;border-radius:6px;padding:6px 10px;margin-top:8px;width:100%}
+    /* Not submitted list */
+    .ns-card{background:#0e0e0e;border:1px solid #1a1a1a;border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:14px}
+    .ns-avatar{width:34px;height:34px;border-radius:50%;background:#1a1a1a;border:1px solid #2a2a2a;display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:700;color:rgba(255,255,255,0.3);flex-shrink:0}
+    .empty-box{text-align:center;padding:48px 20px;color:rgba(255,255,255,0.2)}
+    .empty-box .e-icon{font-size:2.5rem;margin-bottom:10px}
+    .section-label{font-size:11px;letter-spacing:3px;color:#555;text-transform:uppercase;margin:24px 0 12px;display:flex;align-items:center;gap:10px}
+    .section-label::after{content:'';flex:1;height:1px;background:#1e1e1e}
+    @media(max-width:700px){.main{padding:20px 16px}.sub-card{flex-wrap:wrap}.sub-actions{margin-left:0;width:100%}}
+  </style>
+</head>
+<body>
+<nav>
+  <a href="{% url 'home' %}" class="nav-logo">Campus Connect</a>
+  <a href="{% url 'goals' %}" class="btn">← My Goals</a>
+</nav>
+
+<div class="main">
+
+  {% if messages %}{% for m in messages %}
+  <div style="background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.2);color:var(--green);padding:10px 16px;border-radius:9px;margin-bottom:16px;font-size:0.85rem">{{ m }}</div>
+  {% endfor %}{% endif %}
+
+  <!-- Goal summary -->
+  <div class="goal-info">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap">
+      <div>
+        <div style="font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.25);margin-bottom:6px">
+          {% if goal.goal_type == 'quiz' %}🧩 Quiz{% else %}📋 Task{% endif %}
+        </div>
+        <h2>{{ goal.title }}</h2>
+        <div class="meta-row" style="margin-top:8px">
+          <span>📅 {{ goal.start_date }} → {{ goal.due_date }}</span>
+          <span>👥 {{ assigned_count }} assigned</span>
+          <span>📨 {{ submitted_count }} submitted</span>
+          <span>⏳ {{ not_submitted.count }} pending</span>
+        </div>
+      </div>
+    </div>
+    {% if assigned_count > 0 %}
+    <div class="progress-bar">
+      <div class="progress-fill" style="width:{% widthratio submitted_count assigned_count 100 %}%"></div>
+    </div>
+    <div class="progress-label">{{ submitted_count }} / {{ assigned_count }} submissions received</div>
+    {% endif %}
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('submitted', this)">✅ Submitted ({{ submitted_count }})</button>
+    <button class="tab" onclick="showTab('pending', this)">⏳ Not Submitted ({{ not_submitted.count }})</button>
+  </div>
+
+  <!-- SUBMITTED TAB -->
+  <div id="tab-submitted">
+    <div class="sub-list">
+      {% for sub in submissions %}
+      <div class="sub-card">
+        <div class="avatar">{{ sub.student.first_name.0|default:sub.student.username.0|upper }}</div>
+        <div class="student-info">
+          <div class="student-name">{{ sub.student.get_full_name|default:sub.student.username }}</div>
+          <div class="student-meta">
+            @{{ sub.student.username }}
+            &nbsp;·&nbsp; Submitted {{ sub.submitted_at|date:"d M Y, H:i" }}
+          </div>
+          {% if sub.note %}
+          <div class="note-preview">💬 {{ sub.note|truncatechars:100 }}</div>
+          {% endif %}
+        </div>
+
+        <span class="badge badge-{{ sub.status }}">{{ sub.status }}</span>
+
+        {% if sub.quiz_score is not None %}
+        <span class="score-chip">🏆 {{ sub.quiz_score }}/{{ sub.quiz_total }}</span>
+        {% endif %}
+
+        {% if sub.file %}
+        <a href="{{ sub.file.url }}" target="_blank" class="btn" style="padding:6px 12px;font-size:0.78rem;border-color:rgba(0,230,118,0.3);color:var(--green)">
+          📎 File
+        </a>
+        {% endif %}
+
+        <div class="sub-actions">
+          <a href="{% url 'review_submission' sub.id %}" class="btn" style="padding:6px 14px;font-size:0.78rem">
+            ✏️ Review
+          </a>
+        </div>
+      </div>
+      {% empty %}
+      <div class="empty-box">
+        <div class="e-icon">📭</div>
+        <p>No submissions yet for this goal.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- NOT SUBMITTED TAB -->
+  <div id="tab-pending" style="display:none">
+    <div class="sub-list">
+      {% for student in not_submitted %}
+      <div class="ns-card">
+        <div class="ns-avatar">{{ student.first_name.0|default:student.username.0|upper }}</div>
+        <div style="flex:1">
+          <div style="font-size:0.88rem;font-weight:500">{{ student.get_full_name|default:student.username }}</div>
+          <div style="font-size:0.75rem;color:rgba(255,255,255,0.25)">@{{ student.username }}</div>
+        </div>
+        <span class="badge badge-pending">Not Submitted</span>
+      </div>
+      {% empty %}
+      <div class="empty-box">
+        <div class="e-icon">🎉</div>
+        <p>All assigned students have submitted!</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+
+<script>
+function showTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-submitted').style.display = name === 'submitted' ? 'block' : 'none';
+  document.getElementById('tab-pending').style.display   = name === 'pending'   ? 'block' : 'none';
+}
+</script>
+</body>
+</html>

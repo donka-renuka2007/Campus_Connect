@@ -1,0 +1,155 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Review Submission — Campus Connect</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{--green:#00e676;--pink:#ff4d9e;--dark:#0a0a0a;--border:#1e1e1e}
+    body{font-family:'DM Sans',sans-serif;background:var(--dark);color:#fff;min-height:100vh}
+    nav{display:flex;justify-content:space-between;align-items:center;padding:14px 40px;background:#0d0d0d;border-bottom:1px solid var(--border)}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;color:var(--green);text-decoration:none}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;text-decoration:none;border:1px solid #2a2a2a;background:transparent;color:rgba(255,255,255,0.5);transition:all 0.2s}
+    .btn:hover{border-color:#444;color:#fff}
+    .main{max-width:700px;margin:0 auto;padding:36px 40px}
+    h1{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;margin-bottom:6px}
+    h1 span{color:var(--green)}
+    .subtitle{color:rgba(255,255,255,0.35);font-size:0.88rem;margin-bottom:28px}
+    .info-card{background:#111;border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:20px}
+    .info-card h3{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:10px}
+    .info-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #1a1a1a;font-size:0.85rem}
+    .info-row:last-child{border-bottom:none}
+    .info-label{color:rgba(255,255,255,0.35)}
+    .score-big{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--green)}
+    .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:50px;font-size:0.68rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase}
+    .badge-submitted{background:rgba(100,181,246,0.1);color:#64b5f6;border:1px solid rgba(100,181,246,0.2)}
+    .badge-reviewed{background:rgba(255,193,7,0.1);color:#ffc107;border:1px solid rgba(255,193,7,0.2)}
+    .badge-approved{background:rgba(0,230,118,0.1);color:var(--green);border:1px solid rgba(0,230,118,0.2)}
+    .badge-rejected{background:rgba(255,107,107,0.1);color:#ff6b6b;border:1px solid rgba(255,107,107,0.2)}
+    .section-label{font-size:11px;letter-spacing:3px;color:#555;text-transform:uppercase;margin:20px 0 14px;display:flex;align-items:center;gap:10px}
+    .section-label::after{content:'';flex:1;height:1px;background:#1e1e1e}
+    .form-group{margin-bottom:16px}
+    label{font-size:11px;color:#777;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:7px}
+    textarea,select{width:100%;padding:11px 14px;background:#111;border:1px solid #2a2a2a;border-radius:9px;color:#fff;font-family:'DM Sans',sans-serif;font-size:0.9rem;outline:none;transition:border-color 0.2s}
+    textarea:focus,select:focus{border-color:var(--green)}
+    textarea{resize:vertical;min-height:100px}
+    select option{background:#1a1a1a}
+    .status-options{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+    .status-opt{padding:10px;border-radius:10px;border:2px solid #2a2a2a;background:#111;text-align:center;cursor:pointer;transition:all 0.2s}
+    .status-opt input{display:none}
+    .status-opt .s-label{font-family:'Syne',sans-serif;font-size:0.78rem;font-weight:700;display:block;margin-top:4px}
+    .status-opt:has(input:checked){border-color:var(--green);background:rgba(0,230,118,0.06)}
+    .status-opt.danger:has(input:checked){border-color:#ff6b6b;background:rgba(255,107,107,0.06)}
+    .submit-btn{width:100%;padding:14px;background:var(--green);border:none;color:#000;font-family:'Syne',sans-serif;font-weight:800;font-size:0.95rem;border-radius:10px;cursor:pointer;transition:all 0.2s}
+    .submit-btn:hover{background:#00ff88;transform:translateY(-1px)}
+    /* Quiz answers review */
+    .q-block{background:#0e0e0e;border:1px solid #222;border-radius:12px;padding:16px;margin-bottom:10px}
+    .q-label{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--pink);margin-bottom:6px}
+    .q-text{font-size:0.9rem;margin-bottom:8px}
+    .ans-row{display:flex;align-items:center;gap:10px;font-size:0.85rem}
+    .correct{color:var(--green)}
+    .wrong{color:#ff6b6b}
+    .msg.success{background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.2);color:var(--green);padding:10px 16px;border-radius:9px;margin-bottom:16px;font-size:0.85rem}
+    @media(max-width:600px){.main{padding:20px 16px}.status-options{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+<nav>
+  <a href="{% url 'home' %}" class="nav-logo">Campus Connect</a>
+  <a href="{% url 'goal_submissions' sub.goal.id %}" class="btn">← Submissions</a>
+</nav>
+
+<div class="main">
+  <h1>Review <span>Submission</span></h1>
+  <p class="subtitle">Give feedback and update the status for this student's work.</p>
+
+  {% if messages %}{% for m in messages %}
+  <div class="msg success">{{ m }}</div>
+  {% endfor %}{% endif %}
+
+  <!-- Student & Goal Info -->
+  <div class="info-card">
+    <h3>📋 Submission Details</h3>
+    <div class="info-row"><span class="info-label">Goal</span><span>{{ sub.goal.title }}</span></div>
+    <div class="info-row">
+      <span class="info-label">Student</span>
+      <span>{{ sub.student.get_full_name|default:sub.student.username }} (@{{ sub.student.username }})</span>
+    </div>
+    <div class="info-row"><span class="info-label">Submitted</span><span>{{ sub.submitted_at|date:"d M Y, H:i" }}</span></div>
+    <div class="info-row"><span class="info-label">Current Status</span><span class="badge badge-{{ sub.status }}">{{ sub.status }}</span></div>
+    {% if sub.file %}
+    <div class="info-row">
+      <span class="info-label">File</span>
+      <a href="{{ sub.file.url }}" target="_blank" style="color:var(--green);text-decoration:none;font-size:0.85rem">📎 View Submission</a>
+    </div>
+    {% endif %}
+    {% if sub.note %}
+    <div style="margin-top:12px;background:#161616;border-radius:8px;padding:10px 14px;font-size:0.85rem;color:rgba(255,255,255,0.5)">
+      <span style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.25);display:block;margin-bottom:4px">Student Note</span>
+      {{ sub.note }}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Quiz score + answers -->
+  {% if sub.quiz_score is not None %}
+  <div class="info-card" style="text-align:center">
+    <div class="score-big">{{ sub.quiz_score }} / {{ sub.quiz_total }}</div>
+    <p style="color:rgba(255,255,255,0.35);font-size:0.82rem">Quiz Score</p>
+  </div>
+
+  <p class="section-label">Quiz Answers</p>
+  {% for ans in sub.answers.all %}
+  <div class="q-block">
+    <div class="q-label">Question {{ forloop.counter }}</div>
+    <div class="q-text">{{ ans.question.question }}</div>
+    <div class="ans-row">
+      <span style="color:rgba(255,255,255,0.3);font-size:0.75rem">Answer:</span>
+      <span {% if ans.is_correct == True %}class="correct"{% elif ans.is_correct == False %}class="wrong"{% endif %}>
+        {{ ans.answer }}
+        {% if ans.is_correct == True %}✅{% elif ans.is_correct == False %}❌{% endif %}
+      </span>
+      {% if ans.question.qtype == 'mcq' and ans.is_correct == False %}
+      <span style="color:rgba(255,255,255,0.3);font-size:0.75rem">Correct: {{ ans.question.correct }}</span>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  <!-- Feedback form -->
+  <p class="section-label">Give Feedback</p>
+  <form method="POST">
+    {% csrf_token %}
+    <div class="form-group">
+      <label>Update Status</label>
+      <div class="status-options">
+        <label class="status-opt">
+          <input type="radio" name="status" value="reviewed" {% if sub.status == 'reviewed' %}checked{% endif %}/>
+          <span style="font-size:1.2rem">👁</span>
+          <span class="s-label">Reviewed</span>
+        </label>
+        <label class="status-opt">
+          <input type="radio" name="status" value="approved" {% if sub.status == 'approved' %}checked{% endif %}/>
+          <span style="font-size:1.2rem">✅</span>
+          <span class="s-label">Approved</span>
+        </label>
+        <label class="status-opt danger">
+          <input type="radio" name="status" value="rejected" {% if sub.status == 'rejected' %}checked{% endif %}/>
+          <span style="font-size:1.2rem">❌</span>
+          <span class="s-label">Rejected</span>
+        </label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Feedback / Comments</label>
+      <textarea name="feedback" placeholder="Write feedback for the student...">{{ sub.feedback }}</textarea>
+    </div>
+    <button type="submit" class="submit-btn">💾 Save Feedback</button>
+  </form>
+</div>
+</body>
+</html>
