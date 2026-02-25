@@ -18,4 +18,5 @@ urlpatterns = [
     path('announcements/delete/<int:pk>/',      views.delete_announcement,name='delete_announcement'),
     path('profile/',                            views.profile_view,       name='profile'),
     path('profile/edit/',                       views.edit_profile,       name='edit_profile'),
+    path('study/compiler/', views.compiler, name='compiler'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
