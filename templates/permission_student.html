@@ -1,0 +1,317 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Permission Portal — Campus Connect</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+    <style>
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+        :root{--green:#00e676;--pink:#ff4d9e;--red:#ff6b6b;--yellow:#ffc107;--blue:#64b5f6;--dark:#0a0a0a;}
+        body{font-family:'DM Sans',sans-serif;background:var(--dark);color:#fff;min-height:100vh;}
+
+        /* NAV */
+        nav{display:flex;justify-content:space-between;align-items:center;padding:14px 40px;background:#0d0d0d;border-bottom:1px solid #1e1e1e;position:sticky;top:0;z-index:100;}
+        .nav-logo img{width:85px;}
+        .nav-center{display:flex;gap:6px;}
+        .nav-link{text-decoration:none;font-family:'Syne',sans-serif;font-size:0.76rem;letter-spacing:0.08em;padding:8px 18px;border-radius:50px;color:rgba(255,255,255,0.45);border:1px solid transparent;transition:all 0.2s;}
+        .nav-link:hover{color:#fff;background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.1);}
+        .nav-link.active{color:var(--blue);border-color:rgba(100,181,246,0.25);background:rgba(100,181,246,0.06);}
+        .nav-right{display:flex;align-items:center;gap:10px;position:relative;}
+        .profile-btn{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:50px;padding:6px 14px 6px 6px;cursor:pointer;transition:all 0.2s;color:#fff;text-decoration:none;}
+        .profile-btn:hover{border-color:var(--blue);}
+        .avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--pink));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:0.72rem;font-weight:700;color:#000;overflow:hidden;}
+        .avatar img{width:100%;height:100%;object-fit:cover;}
+        .profile-name{font-size:0.8rem;font-weight:500;}
+        .dropdown{position:absolute;top:calc(100% + 10px);right:0;background:#161616;border:1px solid #2a2a2a;border-radius:14px;padding:8px;min-width:180px;display:none;z-index:200;box-shadow:0 16px 40px rgba(0,0,0,0.5);}
+        .dropdown.open{display:block;animation:fadeUp 0.2s ease;}
+        .dropdown a{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;text-decoration:none;color:rgba(255,255,255,0.6);font-size:0.85rem;transition:all 0.15s;}
+        .dropdown a:hover{background:rgba(255,255,255,0.05);color:#fff;}
+        .dropdown hr{border:none;border-top:1px solid #222;margin:6px 0;}
+        .dropdown a.danger:hover{background:rgba(255,77,77,0.08);color:#ff6b6b;}
+
+        /* PAGE HEADER */
+        .page-header{padding:36px 40px 24px;border-bottom:1px solid #1a1a1a;}
+        .page-header h1{font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;}
+        .page-header h1 span{color:var(--blue);}
+        .page-header p{color:rgba(255,255,255,0.35);margin-top:6px;font-size:0.88rem;}
+
+        /* LAYOUT */
+        .layout{display:grid;grid-template-columns:440px 1fr;gap:28px;padding:32px 40px;max-width:1200px;margin:0 auto;}
+
+        /* FORM CARD */
+        .form-card{background:#111;border:1px solid #1e1e1e;border-radius:20px;padding:28px;height:fit-content;position:sticky;top:80px;}
+        .form-card h2{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+        .form-group{margin-bottom:16px;}
+        .form-group label{display:block;font-size:0.76rem;font-weight:500;color:rgba(255,255,255,0.45);margin-bottom:6px;letter-spacing:0.04em;text-transform:uppercase;}
+        .form-group input,.form-group select,.form-group textarea{width:100%;background:#161616;border:1px solid #2a2a2a;border-radius:10px;color:#fff;font-family:'DM Sans',sans-serif;font-size:0.85rem;padding:10px 14px;outline:none;transition:border-color 0.2s;}
+        .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:rgba(100,181,246,0.4);}
+        .form-group textarea{resize:vertical;min-height:90px;line-height:1.6;}
+        .form-group select option{background:#1a1a1a;}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+        /* urgency row */
+        .urgency-row{display:flex;gap:10px;}
+        .urgency-opt{flex:1;}
+        .urgency-opt input[type=radio]{display:none;}
+        .urgency-opt label{display:flex;align-items:center;justify-content:center;gap:6px;padding:9px;border-radius:10px;border:1px solid #2a2a2a;cursor:pointer;font-size:0.82rem;color:rgba(255,255,255,0.4);transition:all 0.2s;background:#161616;}
+        .urgency-opt input:checked + label{border-color:rgba(100,181,246,0.4);background:rgba(100,181,246,0.08);color:var(--blue);}
+        .urgency-opt.u-urgent input:checked + label{border-color:rgba(255,77,77,0.5);background:rgba(255,77,77,0.1);color:#ff4444;}
+
+        .submit-btn{width:100%;padding:12px;background:var(--blue);border:none;border-radius:10px;color:#000;font-family:'Syne',sans-serif;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.2s;margin-top:4px;}
+        .submit-btn:hover{background:#90caf9;box-shadow:0 4px 16px rgba(100,181,246,0.3);transform:translateY(-1px);}
+
+        /* PERMISSIONS LIST */
+        .list-section h2{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+        .count-badge{font-size:0.7rem;padding:2px 8px;border-radius:50px;background:rgba(100,181,246,0.12);border:1px solid rgba(100,181,246,0.2);color:var(--blue);}
+
+        .perm-card{background:#111;border:1px solid #1e1e1e;border-radius:16px;padding:20px;margin-bottom:14px;transition:border-color 0.2s;animation:fadeUp 0.4s ease both;position:relative;}
+        .perm-card:hover{border-color:#2a2a2a;}
+        .perm-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:16px 0 0 16px;background:var(--stripe-clr,#2a2a2a);}
+        .perm-card.st-pending{--stripe-clr:#2a2a2a;}
+        .perm-card.st-accepted{--stripe-clr:var(--green);}
+        .perm-card.st-rejected{--stripe-clr:var(--pink);}
+
+        .cc-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;}
+        .cc-heading{font-family:'Syne',sans-serif;font-size:0.92rem;font-weight:700;flex:1;}
+        .cc-badges{display:flex;gap:6px;align-items:center;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;}
+
+        .badge{font-size:0.62rem;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;padding:3px 9px;border-radius:50px;}
+        .badge-urgent{background:rgba(255,68,68,0.12);border:1px solid rgba(255,68,68,0.25);color:#ff4444;}
+        .badge-type{background:rgba(255,255,255,0.05);border:1px solid #2a2a2a;color:rgba(255,255,255,0.4);}
+        .badge-pending{background:rgba(255,255,255,0.04);border:1px solid #2a2a2a;color:rgba(255,255,255,0.3);}
+        .badge-accepted{background:rgba(0,230,118,0.1);border:1px solid rgba(0,230,118,0.2);color:var(--green);}
+        .badge-rejected{background:rgba(255,77,158,0.1);border:1px solid rgba(255,77,158,0.2);color:var(--pink);}
+
+        .cc-desc{font-size:0.82rem;color:rgba(255,255,255,0.45);line-height:1.6;margin-bottom:12px;}
+        .cc-meta{display:flex;align-items:center;gap:12px;font-size:0.74rem;color:rgba(255,255,255,0.25);flex-wrap:wrap;}
+        .cc-meta .to{color:rgba(255,255,255,0.4);}
+        .cc-meta .dates{color:rgba(255,255,255,0.25);}
+
+        .remark-box{margin-top:10px;padding:8px 12px;border-radius:8px;font-size:0.79rem;line-height:1.5;}
+        .remark-box.accepted{background:rgba(0,230,118,0.07);color:rgba(0,230,118,0.8);}
+        .remark-box.rejected{background:rgba(255,77,158,0.07);color:rgba(255,77,158,0.8);}
+
+        .cc-actions{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid #1a1a1a;}
+        .cc-btn{padding:6px 14px;border-radius:8px;font-size:0.76rem;font-weight:500;cursor:pointer;border:1px solid #2a2a2a;background:transparent;color:rgba(255,255,255,0.35);transition:all 0.2s;text-decoration:none;font-family:'DM Sans',sans-serif;}
+        .cc-btn:hover{border-color:#444;color:#fff;}
+        .cc-btn.del:hover{border-color:rgba(255,107,107,0.4);color:var(--red);background:rgba(255,107,107,0.05);}
+        .cc-btn.edit:hover{border-color:rgba(255,193,7,0.3);color:var(--yellow);}
+
+        .status-indicator{display:flex;align-items:center;gap:5px;font-size:0.74rem;}
+        .status-dot{width:7px;height:7px;border-radius:50%;}
+        .st-pending .status-dot{background:#444;}
+        .st-accepted .status-dot{background:var(--green);box-shadow:0 0 6px rgba(0,230,118,0.5);}
+        .st-rejected .status-dot{background:var(--pink);box-shadow:0 0 6px rgba(255,77,158,0.5);}
+
+        .empty-state{text-align:center;padding:60px 20px;color:rgba(255,255,255,0.2);}
+        .empty-state .ei{font-size:3rem;margin-bottom:12px;}
+
+        @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+        /* DELETE CONFIRM MODAL */
+        .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:500;display:none;align-items:center;justify-content:center;}
+        .modal-bg.open{display:flex;}
+        .modal{background:#161616;border:1px solid #2a2a2a;border-radius:18px;padding:28px;max-width:380px;width:90%;text-align:center;}
+        .modal h3{font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;margin-bottom:8px;}
+        .modal p{color:rgba(255,255,255,0.4);font-size:0.85rem;margin-bottom:20px;line-height:1.6;}
+        .modal-btns{display:flex;gap:10px;}
+        .modal-btns button,.modal-btns a{flex:1;padding:10px;border-radius:10px;font-family:'Syne',sans-serif;font-size:0.82rem;font-weight:700;cursor:pointer;text-decoration:none;text-align:center;}
+        .modal-cancel{background:transparent;border:1px solid #2a2a2a;color:rgba(255,255,255,0.4);}
+        .modal-cancel:hover{border-color:#444;color:#fff;}
+        .modal-confirm{background:var(--red);border:none;color:#fff;}
+        .modal-confirm:hover{background:#ff5252;}
+
+        @media(max-width:900px){.layout{grid-template-columns:1fr;}.form-card{position:static;}}
+        @media(max-width:560px){nav{padding:12px 18px;}.nav-center{display:none;}.layout{padding:20px;}.form-row{grid-template-columns:1fr;}}
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="nav-logo"><a href="{% url 'home' %}"><img src="{% static 'images/logo.png' %}" alt="Campus Connect"/></a></div>
+    <div class="nav-center">
+        <a href="{% url 'announcements' %}" class="nav-link">📢 Announcements</a>
+        <a href="{% url 'study' %}" class="nav-link">📚 Study</a>
+        <a href="{% url 'permission_portal' %}" class="nav-link active">📨 Permissions</a>
+    </div>
+    <div class="nav-right">
+        <div class="profile-btn" onclick="toggleDD()">
+            <div class="avatar">
+                {% if profile and profile.avatar %}<img src="{{ profile.avatar.url }}" alt=""/>
+                {% elif user.first_name %}{{ user.first_name.0|upper }}
+                {% else %}{{ user.username.0|upper }}{% endif %}
+            </div>
+            <span class="profile-name">{{ user.first_name|default:user.username }}</span>
+            <span style="font-size:0.6rem;color:rgba(255,255,255,0.3);margin-left:2px;">▼</span>
+        </div>
+        <div class="dropdown" id="dd">
+            <a href="{% url 'profile' %}">👤 View Profile</a>
+            <a href="{% url 'edit_profile' %}">✏️ Edit Profile</a>
+            <hr/>
+            <a href="{% url 'logout' %}" class="danger">🚪 Logout</a>
+        </div>
+    </div>
+</nav>
+
+<div class="page-header">
+    <h1>📨 <span>Permission Portal</span></h1>
+    <p>Send permission letters to faculty and track their acceptance status.</p>
+</div>
+
+<div class="layout">
+
+    <!-- LEFT: SUBMIT FORM -->
+    <div class="form-card">
+        <h2>📤 New Permission Letter</h2>
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label>Heading / Subject</label>
+                <input type="text" name="heading" placeholder="e.g. Leave request for 3 days" maxlength="200" required/>
+            </div>
+
+            <div class="form-group">
+                <label>Permission Type</label>
+                <select name="permission_type" required>
+                    <option value="">— Select type —</option>
+                    {% for val, label in type_choices %}
+                    <option value="{{ val }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Send To (Faculty)</label>
+                <select name="teacher" required>
+                    <option value="">— Select faculty —</option>
+                    {% for teacher in teachers %}
+                    <option value="{{ teacher.id }}">{{ teacher.get_full_name|default:teacher.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Start Date</label>
+                    <input type="date" name="start_date" required/>
+                </div>
+                <div class="form-group">
+                    <label>End Date</label>
+                    <input type="date" name="end_date" required/>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Letter Body</label>
+                <textarea name="description" placeholder="Write your reason in detail..." required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Urgency</label>
+                <div class="urgency-row">
+                    <div class="urgency-opt">
+                        <input type="radio" name="urgency" id="u-normal" value="normal" checked/>
+                        <label for="u-normal">🔵 Normal</label>
+                    </div>
+                    <div class="urgency-opt u-urgent">
+                        <input type="radio" name="urgency" id="u-urgent" value="urgent"/>
+                        <label for="u-urgent">🔴 Urgent</label>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">📨 Send Letter</button>
+        </form>
+    </div>
+
+    <!-- RIGHT: MY PERMISSIONS -->
+    <div class="list-section">
+        <h2>📋 My Letters <span class="count-badge">{{ permissions.count }}</span></h2>
+
+        {% if permissions %}
+            {% for p in permissions %}
+            <div class="perm-card st-{{ p.status }}">
+                <div class="cc-top">
+                    <div class="cc-heading">{{ p.heading }}</div>
+                    <div class="cc-badges">
+                        {% if p.urgency == 'urgent' %}<span class="badge badge-urgent">🔴 URGENT</span>{% endif %}
+                        <span class="badge badge-type">{{ p.get_permission_type_display }}</span>
+                        <span class="badge badge-{{ p.status }}">
+                            {% if p.status == 'pending' %}⏳ Pending
+                            {% elif p.status == 'accepted' %}✅ Accepted
+                            {% else %}❌ Rejected
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="cc-desc">{{ p.description|truncatewords:30 }}</div>
+
+                <div class="cc-meta">
+                    <span class="to">→ {{ p.teacher.get_full_name|default:p.teacher.username }}</span>
+                    <span class="dates">📅 {{ p.start_date }} – {{ p.end_date }}</span>
+                    <span>🕐 {{ p.created_at|date:"d M Y, H:i" }}</span>
+                    <span class="status-indicator">
+                        <span class="status-dot"></span>
+                        {% if p.status == 'pending' %}Awaiting review
+                        {% elif p.status == 'accepted' %}Accepted by faculty
+                        {% else %}Rejected by faculty
+                        {% endif %}
+                    </span>
+                </div>
+
+                {% if p.remark %}
+                <div class="remark-box {{ p.status }}">
+                    <strong>Faculty remark:</strong> {{ p.remark }}
+                </div>
+                {% endif %}
+
+                {% if p.status == 'pending' %}
+                <div class="cc-actions">
+                    <a href="{% url 'permission_edit' p.id %}" class="cc-btn edit">✏️ Edit</a>
+                    <button class="cc-btn del" onclick="confirmDelete({{ p.id }}, '{{ p.heading|escapejs }}')">🗑 Delete</button>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div class="ei">📭</div>
+                <p>No letters sent yet.<br>Use the form to send your first permission letter.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="modal-bg" id="del-modal">
+    <div class="modal">
+        <h3>Delete Permission Letter?</h3>
+        <p id="del-msg">This will permanently delete your letter.</p>
+        <div class="modal-btns">
+            <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+            <form id="del-form" method="POST" style="flex:1;">
+                {% csrf_token %}
+                <button type="submit" class="modal-confirm" style="width:100%">Delete</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleDD(){document.getElementById('dd').classList.toggle('open');}
+document.addEventListener('click',e=>{if(!e.target.closest('.nav-right'))document.getElementById('dd').classList.remove('open');});
+
+function confirmDelete(id, heading){
+    document.getElementById('del-msg').textContent = `Delete "${heading}"? This cannot be undone.`;
+    document.getElementById('del-form').action = `/study/permission/delete/${id}/`;
+    document.getElementById('del-modal').classList.add('open');
+}
+function closeModal(){document.getElementById('del-modal').classList.remove('open');}
+document.getElementById('del-modal').addEventListener('click', e => { if(e.target === e.currentTarget) closeModal(); });
+</script>
+</body>
+</html>

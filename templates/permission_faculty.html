@@ -1,0 +1,327 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Permissions — Faculty — Campus Connect</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+    <style>
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+        :root{--green:#00e676;--pink:#ff4d9e;--red:#ff6b6b;--yellow:#ffc107;--blue:#64b5f6;--dark:#0a0a0a;}
+        body{font-family:'DM Sans',sans-serif;background:var(--dark);color:#fff;min-height:100vh;}
+
+        /* NAV */
+        nav{display:flex;justify-content:space-between;align-items:center;padding:14px 40px;background:#0d0d0d;border-bottom:1px solid #1e1e1e;position:sticky;top:0;z-index:100;}
+        .nav-logo img{width:85px;}
+        .nav-center{display:flex;gap:6px;}
+        .nav-link{text-decoration:none;font-family:'Syne',sans-serif;font-size:0.76rem;letter-spacing:0.08em;padding:8px 18px;border-radius:50px;color:rgba(255,255,255,0.45);border:1px solid transparent;transition:all 0.2s;}
+        .nav-link:hover{color:#fff;background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.1);}
+        .nav-link.active{color:var(--blue);border-color:rgba(100,181,246,0.25);background:rgba(100,181,246,0.06);}
+        .nav-right{display:flex;align-items:center;gap:10px;position:relative;}
+        .profile-btn{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:50px;padding:6px 14px 6px 6px;cursor:pointer;transition:all 0.2s;color:#fff;text-decoration:none;}
+        .profile-btn:hover{border-color:var(--blue);}
+        .avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--pink));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:0.72rem;font-weight:700;color:#000;overflow:hidden;}
+        .avatar img{width:100%;height:100%;object-fit:cover;}
+        .profile-name{font-size:0.8rem;font-weight:500;}
+        .dropdown{position:absolute;top:calc(100% + 10px);right:0;background:#161616;border:1px solid #2a2a2a;border-radius:14px;padding:8px;min-width:180px;display:none;z-index:200;box-shadow:0 16px 40px rgba(0,0,0,0.5);}
+        .dropdown.open{display:block;animation:fadeUp 0.2s ease;}
+        .dropdown a{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;text-decoration:none;color:rgba(255,255,255,0.6);font-size:0.85rem;transition:all 0.15s;}
+        .dropdown a:hover{background:rgba(255,255,255,0.05);color:#fff;}
+        .dropdown hr{border:none;border-top:1px solid #222;margin:6px 0;}
+        .dropdown a.danger:hover{background:rgba(255,77,77,0.08);color:#ff6b6b;}
+
+        /* HEADER */
+        .page-header{padding:36px 40px 24px;border-bottom:1px solid #1a1a1a;display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;}
+        .page-header-left h1{font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;}
+        .page-header-left h1 span{color:var(--blue);}
+        .page-header-left p{color:rgba(255,255,255,0.35);margin-top:6px;font-size:0.88rem;}
+        .header-stats{margin-left:auto;display:flex;gap:12px;flex-wrap:wrap;}
+        .stat-pill{padding:8px 16px;border-radius:50px;font-size:0.78rem;font-weight:600;font-family:'Syne',sans-serif;}
+        .stat-pending{background:rgba(255,255,255,0.04);border:1px solid #2a2a2a;color:rgba(255,255,255,0.4);}
+        .stat-accepted{background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.2);color:var(--green);}
+        .stat-rejected{background:rgba(255,77,158,0.08);border:1px solid rgba(255,77,158,0.2);color:var(--pink);}
+        .stat-urgent{background:rgba(255,68,68,0.08);border:1px solid rgba(255,68,68,0.2);color:#ff4444;}
+
+        /* FILTERS */
+        .filters{display:flex;gap:8px;padding:20px 40px 0;flex-wrap:wrap;}
+        .filter-btn{padding:7px 16px;border-radius:50px;font-size:0.74rem;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;border:1px solid #1e1e1e;background:transparent;color:rgba(255,255,255,0.35);transition:all 0.2s;}
+        .filter-btn:hover{border-color:#333;color:#fff;}
+        .filter-btn.active{color:var(--blue);border-color:rgba(100,181,246,0.3);background:rgba(100,181,246,0.06);}
+
+        /* CARDS */
+        .permissions-wrap{padding:24px 40px 40px;max-width:1100px;margin:0 auto;}
+        .perm-card{background:#111;border:1px solid #1e1e1e;border-radius:16px;padding:22px;margin-bottom:14px;transition:border-color 0.2s;animation:fadeUp 0.4s ease both;position:relative;overflow:hidden;}
+        .perm-card:hover{border-color:#2a2a2a;}
+        .perm-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:16px 0 0 16px;background:var(--stripe,#2a2a2a);}
+        .perm-card.st-pending{--stripe:#2a2a2a;}
+        .perm-card.st-accepted{--stripe:var(--green);}
+        .perm-card.st-rejected{--stripe:var(--pink);}
+
+        .cc-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;}
+        .student-av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--pink));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:0.78rem;font-weight:700;color:#000;flex-shrink:0;}
+        .cc-info{flex:1;}
+        .cc-student{font-size:0.8rem;color:rgba(255,255,255,0.5);margin-bottom:2px;}
+        .cc-heading{font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:700;}
+        .cc-badges{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;flex-shrink:0;}
+
+        .badge{font-size:0.62rem;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;padding:3px 9px;border-radius:50px;}
+        .badge-urgent{background:rgba(255,68,68,0.12);border:1px solid rgba(255,68,68,0.25);color:#ff4444;}
+        .badge-type{background:rgba(255,255,255,0.05);border:1px solid #2a2a2a;color:rgba(255,255,255,0.4);}
+        .badge-pending{background:rgba(255,255,255,0.04);border:1px solid #2a2a2a;color:rgba(255,255,255,0.3);}
+        .badge-accepted{background:rgba(0,230,118,0.1);border:1px solid rgba(0,230,118,0.2);color:var(--green);}
+        .badge-rejected{background:rgba(255,77,158,0.1);border:1px solid rgba(255,77,158,0.2);color:var(--pink);}
+
+        .cc-desc{font-size:0.83rem;color:rgba(255,255,255,0.45);line-height:1.65;margin-bottom:14px;}
+        .cc-meta{display:flex;gap:12px;font-size:0.74rem;color:rgba(255,255,255,0.25);flex-wrap:wrap;margin-bottom:14px;}
+
+        /* REMARK INPUT + ACTIONS */
+        .remark-row{margin-bottom:12px;}
+        .remark-row input{width:100%;background:#161616;border:1px solid #2a2a2a;border-radius:10px;padding:9px 14px;font-size:0.82rem;color:#fff;font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.2s;}
+        .remark-row input:focus{border-color:rgba(100,181,246,0.4);}
+        .remark-row input::placeholder{color:rgba(255,255,255,0.2);}
+
+        .cc-actions{display:flex;gap:8px;padding-top:12px;border-top:1px solid #1a1a1a;flex-wrap:wrap;align-items:center;}
+        .action-btn{display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:9px;font-size:0.78rem;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;border:1px solid;transition:all 0.2s;}
+        .btn-accept{background:rgba(0,230,118,0.08);border-color:rgba(0,230,118,0.2);color:var(--green);}
+        .btn-accept:hover{background:rgba(0,230,118,0.15);transform:translateY(-1px);}
+        .btn-reject{background:rgba(255,77,158,0.08);border-color:rgba(255,77,158,0.2);color:var(--pink);}
+        .btn-reject:hover{background:rgba(255,77,158,0.15);transform:translateY(-1px);}
+        .btn-disabled{opacity:0.4;cursor:not-allowed;transform:none!important;}
+
+        .status-txt{font-size:0.76rem;color:rgba(255,255,255,0.25);display:flex;align-items:center;gap:5px;margin-left:auto;}
+        .sdot{width:7px;height:7px;border-radius:50%;}
+        .sdot-pending{background:#333;}
+        .sdot-accepted{background:var(--green);box-shadow:0 0 6px rgba(0,230,118,0.5);}
+        .sdot-rejected{background:var(--pink);box-shadow:0 0 6px rgba(255,77,158,0.5);}
+
+        .reviewed-remark{margin-top:10px;padding:8px 14px;border-radius:8px;font-size:0.79rem;line-height:1.5;}
+        .reviewed-remark.accepted{background:rgba(0,230,118,0.07);color:rgba(0,230,118,0.8);}
+        .reviewed-remark.rejected{background:rgba(255,77,158,0.07);color:rgba(255,77,158,0.8);}
+
+        .empty-state{text-align:center;padding:80px 20px;color:rgba(255,255,255,0.2);}
+        .empty-state .ei{font-size:3rem;margin-bottom:12px;}
+
+        @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+        @media(max-width:768px){.header-stats{margin-left:0;}.permissions-wrap{padding:20px;}.filters{padding:14px 20px 0;}}
+        @media(max-width:560px){nav{padding:12px 18px;}.nav-center{display:none;}.page-header{padding:24px 18px;}}
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="nav-logo"><a href="{% url 'home' %}"><img src="{% static 'images/logo.png' %}" alt="Campus Connect"/></a></div>
+    <div class="nav-center">
+        <a href="{% url 'announcements' %}" class="nav-link">📢 Announcements</a>
+        <a href="{% url 'study' %}" class="nav-link">📚 Study</a>
+        <a href="{% url 'permission_portal' %}" class="nav-link active">📨 Permissions</a>
+    </div>
+    <div class="nav-right">
+        <div class="profile-btn" onclick="toggleDD()">
+            <div class="avatar">
+                {% if profile and profile.avatar %}<img src="{{ profile.avatar.url }}" alt=""/>
+                {% elif user.first_name %}{{ user.first_name.0|upper }}
+                {% else %}{{ user.username.0|upper }}{% endif %}
+            </div>
+            <span class="profile-name">{{ user.first_name|default:user.username }}</span>
+            <span style="font-size:0.6rem;color:rgba(255,255,255,0.3);margin-left:2px;">▼</span>
+        </div>
+        <div class="dropdown" id="dd">
+            <a href="{% url 'profile' %}">👤 View Profile</a>
+            <a href="{% url 'edit_profile' %}">✏️ Edit Profile</a>
+            <hr/>
+            <a href="{% url 'logout' %}" class="danger">🚪 Logout</a>
+        </div>
+    </div>
+</nav>
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h1>📨 <span>Permissions</span> Inbox</h1>
+        <p>Permission letters submitted to you by students.</p>
+    </div>
+    <div class="header-stats">
+        <span class="stat-pill stat-pending">⏳ {{ pending_count }} Pending</span>
+        <span class="stat-pill stat-accepted">✅ {{ accepted_count }} Accepted</span>
+        <span class="stat-pill stat-rejected">❌ {{ rejected_count }} Rejected</span>
+        {% if urgent_count %}<span class="stat-pill stat-urgent">🔴 {{ urgent_count }} Urgent</span>{% endif %}
+    </div>
+</div>
+
+<div class="filters">
+    <button class="filter-btn active" onclick="filterCards('all',this)">All</button>
+    <button class="filter-btn" onclick="filterCards('pending',this)">⏳ Pending</button>
+    <button class="filter-btn" onclick="filterCards('accepted',this)">✅ Accepted</button>
+    <button class="filter-btn" onclick="filterCards('rejected',this)">❌ Rejected</button>
+    <button class="filter-btn" onclick="filterCards('urgent',this)">🔴 Urgent</button>
+</div>
+
+<div class="permissions-wrap">
+{% if permissions %}
+    {% for p in permissions %}
+    <div class="perm-card st-{{ p.status }}" id="card-{{ p.id }}"
+         data-status="{{ p.status }}" data-urgent="{{ p.urgency }}">
+
+        <div class="cc-top">
+            <div class="student-av">{{ p.student.first_name.0|upper|default:p.student.username.0|upper }}</div>
+            <div class="cc-info">
+                <div class="cc-student">From: <strong style="color:rgba(255,255,255,0.7)">{{ p.student.get_full_name|default:p.student.username }}</strong></div>
+                <div class="cc-heading">{{ p.heading }}</div>
+            </div>
+            <div class="cc-badges">
+                {% if p.urgency == 'urgent' %}<span class="badge badge-urgent">🔴 URGENT</span>{% endif %}
+                <span class="badge badge-type">{{ p.get_permission_type_display }}</span>
+                <span class="badge badge-{{ p.status }}" id="badge-{{ p.id }}">
+                    {% if p.status == 'pending' %}⏳ Pending
+                    {% elif p.status == 'accepted' %}✅ Accepted
+                    {% else %}❌ Rejected
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+
+        <div class="cc-desc">{{ p.description }}</div>
+
+        <div class="cc-meta">
+            <span>📅 {{ p.created_at|date:"d M Y, H:i" }}</span>
+            <span>📆 {{ p.start_date }} → {{ p.end_date }}</span>
+        </div>
+
+        {% if p.remark %}
+        <div class="reviewed-remark {{ p.status }}">
+            <strong>Your remark:</strong> {{ p.remark }}
+        </div>
+        {% endif %}
+
+        {% if p.status == 'pending' %}
+        <div class="remark-row" style="margin-top:12px;">
+            <input type="text" id="remark-{{ p.id }}" placeholder="Optional remark before accepting or rejecting..."/>
+        </div>
+        {% endif %}
+
+        <div class="cc-actions">
+            <button class="action-btn btn-accept {% if p.status != 'pending' %}btn-disabled{% endif %}"
+                    id="btn-accepted-{{ p.id }}"
+                    onclick="updateStatus({{ p.id }}, 'accepted')"
+                    {% if p.status != 'pending' %}disabled{% endif %}>
+                ✅ Accept
+            </button>
+            <button class="action-btn btn-reject {% if p.status != 'pending' %}btn-disabled{% endif %}"
+                    id="btn-rejected-{{ p.id }}"
+                    onclick="updateStatus({{ p.id }}, 'rejected')"
+                    {% if p.status != 'pending' %}disabled{% endif %}>
+                ❌ Reject
+            </button>
+            <span class="status-txt" id="status-txt-{{ p.id }}">
+                <span class="sdot sdot-{{ p.status }}"></span>
+                {% if p.status == 'pending' %}Awaiting review
+                {% elif p.status == 'accepted' %}Accepted
+                {% else %}Rejected
+                {% endif %}
+            </span>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="empty-state">
+        <div class="ei">📭</div>
+        <p>No permission letters in your inbox yet.</p>
+    </div>
+{% endif %}
+</div>
+
+<script>
+function toggleDD(){document.getElementById('dd').classList.toggle('open');}
+document.addEventListener('click',e=>{if(!e.target.closest('.nav-right'))document.getElementById('dd').classList.remove('open');});
+
+function filterCards(type, btn){
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.perm-card').forEach(card=>{
+        if(type==='all') card.style.display='';
+        else if(type==='urgent') card.style.display = card.dataset.urgent==='urgent' ? '' : 'none';
+        else card.style.display = card.dataset.status===type ? '' : 'none';
+    });
+}
+
+async function updateStatus(id, status){
+    const btn = document.getElementById(`btn-${status}-${id}`);
+    if(btn.disabled) return;
+
+    const remarkInput = document.getElementById(`remark-${id}`);
+    const remark = remarkInput ? remarkInput.value.trim() : '';
+
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '⟳ Updating...';
+    btn.disabled  = true;
+
+    try {
+        const res = await fetch(`/study/permission/status/${id}/`, {
+            method:  'POST',
+            headers: {'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
+            body:    JSON.stringify({status, remark})
+        });
+        const data = await res.json();
+        if(data.ok){
+            const badge = document.getElementById(`badge-${id}`);
+            const card  = document.getElementById(`card-${id}`);
+            const txt   = document.getElementById(`status-txt-${id}`);
+
+            card.className = `perm-card st-${status}`;
+            card.dataset.status = status;
+
+            // disable both action buttons
+            ['accepted','rejected'].forEach(s => {
+                const b = document.getElementById(`btn-${s}-${id}`);
+                if(b){ b.disabled = true; b.classList.add('btn-disabled'); }
+            });
+
+            // hide remark input row
+            if(remarkInput) remarkInput.closest('.remark-row').style.display = 'none';
+
+            if(status === 'accepted'){
+                badge.className = 'badge badge-accepted';
+                badge.innerHTML = '✅ Accepted';
+                txt.innerHTML   = '<span class="sdot sdot-accepted"></span> Accepted';
+            } else {
+                badge.className = 'badge badge-rejected';
+                badge.innerHTML = '❌ Rejected';
+                txt.innerHTML   = '<span class="sdot sdot-rejected"></span> Rejected';
+            }
+
+            // show saved remark if any
+            if(remark){
+                const existingRemark = card.querySelector('.reviewed-remark');
+                if(existingRemark){
+                    existingRemark.className = `reviewed-remark ${status}`;
+                    existingRemark.innerHTML = `<strong>Your remark:</strong> ${remark}`;
+                } else {
+                    const div = document.createElement('div');
+                    div.className = `reviewed-remark ${status}`;
+                    div.innerHTML = `<strong>Your remark:</strong> ${remark}`;
+                    card.querySelector('.cc-actions').insertAdjacentElement('beforebegin', div);
+                }
+            }
+        } else {
+            btn.innerHTML = originalText;
+            btn.disabled  = false;
+            alert('Error: ' + (data.error || 'Unknown'));
+        }
+    } catch(e){
+        btn.innerHTML = originalText;
+        btn.disabled  = false;
+        alert('Network error');
+    }
+}
+
+function getCookie(name){
+    let v=null;
+    document.cookie.split(';').forEach(c=>{
+        c=c.trim();
+        if(c.startsWith(name+'=')) v=decodeURIComponent(c.slice(name.length+1));
+    });
+    return v;
+}
+</script>
+</body>
+</html>

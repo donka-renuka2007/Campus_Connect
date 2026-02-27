@@ -319,3 +319,59 @@ class Complaint(models.Model):
 
     def __str__(self):
         return f"{self.heading} — {self.student.username} → {self.teacher.username}"
+
+
+
+
+# ---permission model
+
+
+from django.db import models
+from django.contrib.auth.models import User
+
+
+class Permission(models.Model):
+
+    PERMISSION_TYPES = [
+        ('leave',      'Leave Request'),
+        ('od',         'On Duty (OD)'),
+        ('medical',    'Medical Leave'),
+        ('late_entry', 'Late Entry'),
+        ('early_exit', 'Early Exit'),
+        ('exam_duty',  'Exam Duty'),
+        ('internship', 'Internship / Industrial Visit'),
+    ]
+
+    STATUS_CHOICES = [
+        ('pending',  'Pending'),
+        ('accepted', 'Accepted'),
+        ('rejected', 'Rejected'),
+    ]
+
+    URGENCY_CHOICES = [
+        ('normal', 'Normal'),
+        ('urgent', 'Urgent'),
+    ]
+
+    student         = models.ForeignKey(User, on_delete=models.CASCADE, related_name='permissions_sent')
+    teacher         = models.ForeignKey(User, on_delete=models.CASCADE, related_name='permissions_received')
+    heading         = models.CharField(max_length=200)
+    description     = models.TextField()
+    permission_type = models.CharField(max_length=20, choices=PERMISSION_TYPES)
+    urgency         = models.CharField(max_length=10, choices=URGENCY_CHOICES, default='normal')
+    status          = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    remark          = models.TextField(blank=True)
+    start_date = models.DateField(null=True, blank=True)
+    end_date   = models.DateField(null=True, blank=True)
+    created_at      = models.DateTimeField(auto_now_add=True)
+    updated_at      = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.heading} — {self.student.username} -> {self.teacher.username}"
+
+    @property
+    def is_editable(self):
+        return self.status == 'pending'

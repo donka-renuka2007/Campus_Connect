@@ -1226,3 +1226,171 @@ def complaint_update_status(request, complaint_id):
         return JsonResponse({'ok': True, 'status': status})
 
     return JsonResponse({'error': 'Invalid status'}, status=400)
+
+
+
+
+
+
+
+#permission views
+
+
+
+
+import json
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+from django.contrib.auth.models import User
+from django.http import JsonResponse
+from .models import Permission
+
+
+def is_teacher(user):
+    try:
+        return user.profile.role == 'faculty'
+    except Exception:
+        return False
+
+
+# ─────────────────────────────────────────────
+#  ROUTER
+# ─────────────────────────────────────────────
+
+@login_required
+def permission_portal(request):
+    """Routes to student or faculty view."""
+    if is_teacher(request.user):
+        return redirect('permission_faculty')
+    return redirect('permission_student')
+
+
+# ─────────────────────────────────────────────
+#  STUDENT VIEWS
+# ─────────────────────────────────────────────
+
+@login_required
+def permission_student(request):
+    """Student: view own permission letters + submit new."""
+    profile     = getattr(request.user, 'profile', None)
+    teachers    = User.objects.filter(profile__role='faculty').order_by('first_name', 'last_name')
+    permissions = Permission.objects.filter(student=request.user)
+
+    if request.method == 'POST':
+        teacher_id      = request.POST.get('teacher')
+        heading         = request.POST.get('heading', '').strip()
+        description     = request.POST.get('description', '').strip()
+        permission_type = request.POST.get('permission_type')
+        urgency         = request.POST.get('urgency', 'normal')
+        start_date      = request.POST.get('start_date')
+        end_date        = request.POST.get('end_date')
+
+        if teacher_id and heading and description and permission_type:
+            teacher = get_object_or_404(User, id=teacher_id)
+            Permission.objects.create(
+                student=request.user,
+                teacher=teacher,
+                heading=heading,
+                description=description,
+                permission_type=permission_type,
+                urgency=urgency,
+                start_date=start_date or None,
+                end_date=end_date or None,
+            )
+        return redirect('permission_student')
+
+    return render(request, 'permission_student.html', {
+        'profile':      profile,
+        'teachers':     teachers,
+        'permissions':  permissions,
+        'type_choices': Permission.PERMISSION_TYPES,
+    })
+
+
+@login_required
+def permission_edit(request, permission_id):
+    """Student edits their own permission letter (only if pending)."""
+    permission = get_object_or_404(Permission, id=permission_id, student=request.user)
+
+    if permission.status != 'pending':
+        return redirect('permission_student')
+
+    if request.method == 'POST':
+        permission.heading         = request.POST.get('heading', permission.heading).strip()
+        permission.description     = request.POST.get('description', permission.description).strip()
+        permission.permission_type = request.POST.get('permission_type', permission.permission_type)
+        permission.urgency         = request.POST.get('urgency', permission.urgency)
+        permission.start_date      = request.POST.get('start_date') or permission.start_date
+        permission.end_date        = request.POST.get('end_date') or permission.end_date
+        teacher_id = request.POST.get('teacher')
+        if teacher_id:
+            permission.teacher = get_object_or_404(User, id=teacher_id)
+        permission.save()
+        return redirect('permission_student')
+
+    profile  = getattr(request.user, 'profile', None)
+    teachers = User.objects.filter(profile__role='faculty').order_by('first_name', 'last_name')
+
+    return render(request, 'permission_edit.html', {
+        'profile':      profile,
+        'permission':   permission,
+        'teachers':     teachers,
+        'type_choices': Permission.PERMISSION_TYPES,
+    })
+
+
+@login_required
+def permission_delete(request, permission_id):
+    """Student deletes their own pending permission letter."""
+    permission = get_object_or_404(Permission, id=permission_id, student=request.user)
+    if request.method == 'POST':
+        if permission.status == 'pending':
+            permission.delete()
+    return redirect('permission_student')
+
+
+# ─────────────────────────────────────────────
+#  FACULTY VIEWS
+# ─────────────────────────────────────────────
+
+@login_required
+def permission_faculty(request):
+    """Faculty: see all permission letters sent to them."""
+    if not is_teacher(request.user):
+        return redirect('permission_student')
+
+    profile     = getattr(request.user, 'profile', None)
+    permissions = Permission.objects.filter(teacher=request.user)
+
+    return render(request, 'permission_faculty.html', {
+        'profile':        profile,
+        'permissions':    permissions,
+        'pending_count':  permissions.filter(status='pending').count(),
+        'accepted_count': permissions.filter(status='accepted').count(),
+        'rejected_count': permissions.filter(status='rejected').count(),
+        'urgent_count':   permissions.filter(urgency='urgent', status='pending').count(),
+    })
+
+
+@login_required
+@require_POST
+def permission_update_status(request, permission_id):
+    """Faculty accepts or rejects a permission letter via AJAX."""
+    if not is_teacher(request.user):
+        return JsonResponse({'error': 'Forbidden'}, status=403)
+
+    permission = get_object_or_404(Permission, id=permission_id, teacher=request.user)
+
+    data   = json.loads(request.body)
+    status = data.get('status')
+    remark = data.get('remark', '').strip()
+
+    if status in ('accepted', 'rejected'):
+        permission.status = status
+        if remark:
+            permission.remark = remark
+        permission.save()
+        return JsonResponse({'ok': True, 'status': status})
+
+    return JsonResponse({'error': 'Invalid status'}, status=400)

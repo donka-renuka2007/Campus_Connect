@@ -50,4 +50,12 @@ path('study/complaints/faculty/',                   views.complaint_faculty,    
 path('study/complaints/edit/<int:complaint_id>/',   views.complaint_edit,          name='complaint_edit'),
 path('study/complaints/delete/<int:complaint_id>/', views.complaint_delete,        name='complaint_delete'),
 path('study/complaints/status/<int:complaint_id>/', views.complaint_update_status, name='complaint_update_status'),
+#------permission portal ________________
+path('study/permission/',                           views.permission_portal,        name='permission_portal'),
+path('study/permission/student/',                   views.permission_student,       name='permission_student'),
+path('study/permission/faculty/',                   views.permission_faculty,       name='permission_faculty'),
+path('study/permission/edit/<int:permission_id>/',   views.permission_edit,          name='permission_edit'),
+path('study/permission/delete/<int:permission_id>/', views.permission_delete,        name='permission_delete'),
+path('study/permission/status/<int:permission_id>/', views.permission_update_status, name='permission_update_status'),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
